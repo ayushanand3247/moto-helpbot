@@ -10,11 +10,17 @@ import {
 import {
   MilestoneCard,
 } from "@/components/milestones/MilestoneCard";
+import {
+  CreateTaskDialog,
+} from "@/components/tasks/CreateTaskDialog";
+import { TaskCard } from "@/components/tasks/TaskCard";
 
 type Props = {
   project: any;
   milestones: any[];
   canCreate: boolean;
+  members: any[];
+  subsystems: any[];
 };
 
 const statusColors: Record<string, string> = {
@@ -28,8 +34,24 @@ export function ProjectDetail({
   project,
   milestones,
   canCreate,
+  members,
+  subsystems,
 }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [taskDialogOpen, setTaskDialogOpen] =
+    useState(false);
+  const [selectedMilestoneId, setSelectedMilestoneId] =
+    useState<string | null>(null);
+
+  const openTaskDialog = (milestoneId: string) => {
+    setSelectedMilestoneId(milestoneId);
+    setTaskDialogOpen(true);
+  };
+
+  const closeTaskDialog = () => {
+    setSelectedMilestoneId(null);
+    setTaskDialogOpen(false);
+  };
 
   return (
     <>
@@ -124,16 +146,80 @@ export function ProjectDetail({
               )}
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-6">
               {milestones.map((milestone) => (
-                <MilestoneCard
+                <div
                   key={milestone.id}
-                  id={milestone.id}
-                  title={milestone.title}
-                  description={milestone.description}
-                  status={milestone.status}
-                  due_date={milestone.due_date}
-                />
+                  className="space-y-3 rounded-lg border p-4"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <MilestoneCard
+                        id={milestone.id}
+                        title={milestone.title}
+                        description={
+                          milestone.description
+                        }
+                        status={milestone.status}
+                        due_date={milestone.due_date}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold">
+                        Tasks
+                      </h4>
+
+                      {canCreate && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            openTaskDialog(
+                              milestone.id
+                            )
+                          }
+                        >
+                          Add Task
+                        </Button>
+                      )}
+                    </div>
+
+                    {milestone.tasks &&
+                    milestone.tasks.length > 0 ? (
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {milestone.tasks.map(
+                          (task: any) => (
+                            <TaskCard
+                              key={task.id}
+                              id={task.id}
+                              title={task.title}
+                              status={task.status}
+                              priority={task.priority}
+                              assignee={
+                                task.profiles
+                                  ?.full_name
+                              }
+                              deadline={
+                                task.deadline
+                              }
+                              subsystem={
+                                task.subsystems
+                                  ?.name
+                              }
+                            />
+                          )
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No tasks yet
+                      </p>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -145,6 +231,17 @@ export function ProjectDetail({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
       />
+
+      {selectedMilestoneId && (
+        <CreateTaskDialog
+          milestoneId={selectedMilestoneId}
+          projectId={project.id}
+          open={taskDialogOpen}
+          onOpenChange={closeTaskDialog}
+          members={members}
+          subsystems={subsystems}
+        />
+      )}
     </>
   );
 }
