@@ -1,19 +1,34 @@
 import { NextResponse } from "next/server";
-
+import { createClient } from "@/lib/supabase/server";
 import { createTaskUpdate } from "@/actions/create-task-update";
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const body = await req.json();
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
 
     const result = await createTaskUpdate(body);
 
-    if (!result || !result.success) {
-      return NextResponse.json({ success: false, message: result?.message || "Failed" }, { status: 500 });
-    }
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error(error);
 
-    return NextResponse.json({ success: true, update_id: result.update_id });
-  } catch (err: any) {
-    return NextResponse.json({ success: false, message: err.message || "Invalid" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
