@@ -52,21 +52,20 @@ export default function UpdateForm({ taskId }: { taskId: string }) {
     e.preventDefault();
     setError(null);
 
-    const supabase = createClient();
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData?.user?.id;
-    if (!userId) {
-      setError("Unauthorized");
-      return;
-    }
-
     setUploading(true);
     const uploaded: AttachmentMeta[] = [];
 
+    // Upload files to Supabase Storage from the browser
+    const supabase = createClient();
+
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
+      // Use anonymous path; server will record uploaded_by based on session
       const timestamp = Math.floor(Date.now() / 1000);
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id || "anonymous";
       const path = `task-attachments/${userId}/${taskId}/${timestamp}_${f.name}`;
+
       const { error: upError } = await supabase.storage
         .from("task-attachments")
         .upload(path, f, { cacheControl: "3600", upsert: false });
@@ -82,57 +81,24 @@ export default function UpdateForm({ taskId }: { taskId: string }) {
       setProgress(Math.round(((i + 1) / files.length) * 100));
     }
 
-    // Insert task update and attachments using Supabase client
-    const { data: createdUpdate, error: updateErr } = await supabase
-      .from("task_updates")
-      .insert([
-        {
-          task_id: taskId,
-          content: content || null,
-          author_id: userId,
-        },
-      ])
-      .select("id")
-      .single();
+    // Call server API to create task update and insert attachments.
+    try {
+      const res = await fetch("/api/tasks/create-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id: taskId, content, attachments: uploaded }),
+      });
 
-    if (updateErr || !createdUpdate) {
-      setError(updateErr?.message || "Failed to create update");
-      setUploading(false);
-      return;
-    }
-
-    const updateId = createdUpdate.id as string;
-
-    if (uploaded.length > 0) {
-      const attachmentsToInsert = uploaded.map((a) => ({
-        file_name: a.file_name,
-        file_url: a.file_url,
-        file_type: a.file_type || null,
-        file_size_bytes: a.file_size_bytes || null,
-        update_id: updateId,
-        uploaded_by: userId,
-      }));
-
-      const { error: attachError } = await supabase.from("attachments").insert(attachmentsToInsert);
-
-      if (attachError) {
-        setError(attachError.message);
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setError(data?.message || "Failed to create update");
         setUploading(false);
         return;
       }
-
-      // log activities
-      for (const a of attachmentsToInsert) {
-        await supabase.from("activity_logs").insert([
-          {
-            action: "ATTACHMENT_UPLOADED",
-            actor_id: userId,
-            entity_type: "task",
-            entity_id: taskId,
-            metadata: { filename: a.file_name },
-          },
-        ]);
-      }
+    } catch (err: any) {
+      setError(err.message || "Failed to create update");
+      setUploading(false);
+      return;
     }
 
     setContent("");
