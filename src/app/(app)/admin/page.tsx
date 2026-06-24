@@ -1,75 +1,29 @@
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { createClient } from "@/lib/supabase/server";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import UsersTable from "@/components/UsersTable";
+import InviteDialog from "@/components/InviteDialog";
 
 export default async function AdminPage() {
   await requireAdmin();
 
+  const supabase = await createClient();
+  const { data: users } = await supabase.from("profiles").select(`*, subsystems (*)`).order("full_name");
+
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">
-          Admin
-        </h1>
-
-        <p className="text-muted-foreground">
-          Administrative tools and system management.
-        </p>
+        <h1 className="text-3xl font-bold">Admin</h1>
+        <p className="text-muted-foreground">Administrative tools and system management.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              User Management
-            </CardTitle>
-          </CardHeader>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">User Management</h2>
+        <InviteDialog />
+      </div>
 
-          <CardContent>
-            Manage team members and roles.
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Invitations
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent>
-            Create and track invitations.
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Projects
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent>
-            Manage project lifecycle.
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              System
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent>
-            System administration tools.
-          </CardContent>
-        </Card>
+      <div>
+        <UsersTable users={users || []} />
       </div>
     </div>
   );
