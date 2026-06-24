@@ -33,6 +33,15 @@ interface MetadataPanelProps {
   task: Task;
 }
 
+function formatMetadataDate(value?: string | null) {
+  if (!value) return "Unknown";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Unknown";
+
+  return `${date.getUTCDate().toString().padStart(2, "0")}/${(date.getUTCMonth() + 1).toString().padStart(2, "0")}/${date.getUTCFullYear()}`;
+}
+
 export function MetadataPanel({ task }: MetadataPanelProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -156,7 +165,7 @@ export function MetadataPanel({ task }: MetadataPanelProps) {
         <div>
           <p className="text-sm font-medium text-gray-500 mb-2">Deadline</p>
           <p className={`text-sm font-medium ${getDeadlineColor(task.deadline)}`}>
-            {new Date(task.deadline).toLocaleDateString()}
+            {formatMetadataDate(task.deadline)}
             {isPast(new Date(task.deadline)) && " (Overdue)"}
           </p>
         </div>
@@ -205,9 +214,7 @@ export function MetadataPanel({ task }: MetadataPanelProps) {
                 {task.created_by_profile.full_name}
               </p>
               <p className="text-xs text-gray-500">
-                {task.created_at
-                  ? new Date(task.created_at).toLocaleDateString()
-                  : "Unknown"}
+                {formatMetadataDate(task.created_at)}
               </p>
             </div>
           </div>

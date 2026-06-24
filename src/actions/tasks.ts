@@ -14,6 +14,12 @@ interface SubmitUpdateInput {
   content?: string | null;
   updateType: UpdateType;
   newStatus?: TaskStatus;
+  attachments?: Array<{
+    file_name: string;
+    file_url: string;
+    file_type?: string | null;
+    file_size_bytes?: number | null;
+  }>;
 }
 
 export async function submitUpdate(input: SubmitUpdateInput) {
@@ -85,6 +91,25 @@ export async function submitUpdate(input: SubmitUpdateInput) {
 
     if (statusError) {
       throw new Error(statusError.message);
+    }
+  }
+
+  if (input.attachments && input.attachments.length > 0) {
+    const attachmentsToInsert = input.attachments.map((attachment) => ({
+      file_name: attachment.file_name,
+      file_url: attachment.file_url,
+      file_type: attachment.file_type || null,
+      file_size_bytes: attachment.file_size_bytes || null,
+      update_id: taskUpdate.id,
+      uploaded_by: profile.id,
+    }));
+
+    const { error: attachmentsError } = await supabase
+      .from("attachments")
+      .insert(attachmentsToInsert);
+
+    if (attachmentsError) {
+      throw new Error(attachmentsError.message);
     }
   }
 

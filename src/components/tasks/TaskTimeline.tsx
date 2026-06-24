@@ -31,6 +31,24 @@ interface TaskTimelineProps {
   };
 }
 
+function formatTimelineDate(value?: string | null) {
+  if (!value) return "Unknown";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Unknown";
+
+  return `${date.getUTCDate().toString().padStart(2, "0")}/${(date.getUTCMonth() + 1).toString().padStart(2, "0")}/${date.getUTCFullYear()}`;
+}
+
+function formatTimelineTime(value?: string | null) {
+  if (!value) return "Unknown";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Unknown";
+
+  return `${date.getUTCHours().toString().padStart(2, "0")}:${date.getUTCMinutes().toString().padStart(2, "0")}`;
+}
+
 export function TaskTimeline({
   updates,
   taskTitle,
@@ -53,8 +71,7 @@ export function TaskTimeline({
               </p>
               <p className="text-sm text-gray-600 mt-1">{taskTitle}</p>
               <p className="text-xs text-gray-500 mt-2">
-                {new Date(createdAt).toLocaleDateString()} at{" "}
-                {new Date(createdAt).toLocaleTimeString()}
+                {formatTimelineDate(createdAt)} at {formatTimelineTime(createdAt)}
               </p>
             </div>
           </div>

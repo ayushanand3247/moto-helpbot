@@ -9,7 +9,7 @@ import { UpdateForm } from "@/components/tasks/UpdateForm";
 export default async function TaskDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   await requireAuth();
   const profile = await getProfile();
@@ -18,7 +18,8 @@ export default async function TaskDetailPage({
     notFound();
   }
 
-  const task = await getTask(params.id);
+  const { id } = await params;
+  const task = await getTask(id);
 
   if (!task) {
     notFound();
