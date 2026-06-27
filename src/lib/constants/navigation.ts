@@ -1,4 +1,4 @@
-export type UserRole =
+﻿export type UserRole =
   | "ADMIN"
   | "BOARD"
   | "MEMBER";
@@ -34,6 +34,11 @@ export const navigation: NavigationItem[] = [
     title: "Settings",
     href: "/settings",
     roles: ["ADMIN", "BOARD", "MEMBER"],
+  },
+  {
+    title: "Analytics",
+    href: "/analytics",
+    roles: ["ADMIN", "BOARD"],
   },
   {
     title: "Admin",

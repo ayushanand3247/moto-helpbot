@@ -39,92 +39,246 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) * 1.25);
+  --radius-2xl: calc(var(--radius) * 1.5);
+  --radius-3xl: calc(var(--radius) * 2);
+  --radius-4xl: calc(var(--radius) * 2.5);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* ── Depth stack ──────────────────────────────────────────
+     Think: pit floor, instrument panel, raised gauge face,
+     active channel. Each step is exactly one layer up.      */
+  --background: #050507;        /* pit floor — absolute dark  */
+  --card: #0a0a0d;              /* panel surface              */
+  --popover: #111115;           /* raised surface (menus)     */
+  --accent: #16161b;            /* hover/interactive surface  */
+
+  --card-foreground: #c8c8d0;
+  --popover-foreground: #c8c8d0;
+  --accent-foreground: #e2e2ea;
+
+  /* ── Text ─────────────────────────────────────────────────
+     Cool-white monitor glow, not warm paper white.          */
+  --foreground: #c8c8d0;
+
+  /* ── Velocity red — used sparingly, lands hard ───────────
+     Hotter than Ferrari (#dc2626), closer to pitlane tape.
+     Only fires on primary CTA, active indicators, errors.   */
+  --primary: #e8241a;
+  --primary-foreground: #ffffff;
+
+  /* ── Secondary surface ────────────────────────────────────*/
+  --secondary: #14141a;
+  --secondary-foreground: #a8a8b8;
+
+  /* ── Muted — label gray, off-state text ──────────────────*/
+  --muted: #0e0e12;
+  --muted-foreground: #52525f;
+
+  /* ── Destructive ─────────────────────────────────────────*/
+  --destructive: #e8241a;
+
+  /* ── Structure ────────────────────────────────────────────
+     Borders barely register — like panel seams, not walls.  */
+  --border: #222228;
+  --input: #18181e;
+  --ring: #e8241a;
+
+  /* ── Radius — tight. Engineering tools have square edges. ─*/
+  --radius: 0.25rem;
+
+  /* ── Charts — telemetry palette: red, amber, white scale ─*/
+  --chart-1: #e8241a;   /* velocity red   */
+  --chart-2: #ff6b2b;   /* amber telemetry*/
+  --chart-3: #c8c8d0;   /* monitor white  */
+  --chart-4: #5a5a6a;   /* instrument gray*/
+  --chart-5: #2a2a32;   /* dead channel   */
+
+  /* ── Sidebar ──────────────────────────────────────────────*/
+  --sidebar: #050507;
+  --sidebar-foreground: #52525f;
+  --sidebar-primary: #e8241a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #0e0e12;
+  --sidebar-accent-foreground: #c8c8d0;
+  --sidebar-border: #111115;
+  --sidebar-ring: #e8241a;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #050507;
+  --foreground: #c8c8d0;
+  --card: #0a0a0d;
+  --card-foreground: #c8c8d0;
+  --popover: #111115;
+  --popover-foreground: #c8c8d0;
+  --primary: #e8241a;
+  --primary-foreground: #ffffff;
+  --secondary: #14141a;
+  --secondary-foreground: #a8a8b8;
+  --muted: #0e0e12;
+  --muted-foreground: #52525f;
+  --accent: #16161b;
+  --accent-foreground: #e2e2ea;
+  --destructive: #e8241a;
+  --border: #222228;
+  --input: #18181e;
+  --ring: #e8241a;
+  --chart-1: #e8241a;
+  --chart-2: #ff6b2b;
+  --chart-3: #c8c8d0;
+  --chart-4: #5a5a6a;
+  --chart-5: #2a2a32;
+  --sidebar: #050507;
+  --sidebar-foreground: #52525f;
+  --sidebar-primary: #e8241a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #0e0e12;
+  --sidebar-accent-foreground: #c8c8d0;
+  --sidebar-border: #111115;
+  --sidebar-ring: #e8241a;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply min-h-screen bg-background text-foreground antialiased;
+    /* Tabular numerals everywhere — data reads as data */
+    font-feature-settings: "tnum", "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* 13px base — density. Engineers don't waste vertical space. */
+    font-size: 13px;
+    line-height: 1.5;
   }
+
   html {
     @apply font-sans;
+    color-scheme: dark;
+  }
+
+  /* Selection: red like a highlighted telemetry channel */
+  ::selection {
+    background: rgba(232, 36, 26, 0.22);
+    color: #e2e2ea;
+  }
+
+  /* Scrollbar — 4px, invisible until you need it */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #28282e;
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3a3a44;
+  }
+
+  /* Mono: tabular, zero-ambiguity. Used for IDs, values, codes. */
+  code, kbd, samp, .font-mono {
+    font-feature-settings: "tnum", "zero", "salt";
+    letter-spacing: 0.02em;
+  }
+
+  /* Headings: compressed, serious */
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    text-wrap: balance;
+    color: #e2e2ea;
+  }
+
+  p {
+    text-wrap: pretty;
+    color: var(--foreground);
+  }
+}
+
+/* ── Scan-line shimmer for skeletons ──────────────────────────
+   Not a pulse. A scan. Like a data acquisition sweep.          */
+@keyframes scan {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ── Telemetry blink — for live/active indicators ────────────*/
+@keyframes telemetry-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@layer utilities {
+  /* ── Engineering mono label ─────────────────────────────────
+     ALL-CAPS, tracked, 10px — reads like a panel instrument
+     label. Use for column headers, category tags, field keys.  */
+  .text-mono-label {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;  /* 10px */
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-feature-settings: "tnum";
+    color: var(--muted-foreground);
+  }
+
+  /* ── Data readout — large numbers, mono ─────────────────────*/
+  .text-data-readout {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum", "zero";
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Active channel stripe ───────────────────────────────────
+     The signature element: a 2px left-edge red stripe.
+     Applied to active rows, focused regions, selected state.
+     Same language as a live telemetry channel being read.      */
+  .channel-active {
+    box-shadow: inset 2px 0 0 var(--primary);
+  }
+
+  /* ── Panel seam ─────────────────────────────────────────────*/
+  .divider {
+    border-top: 1px solid #1c1c22;
+  }
+
+  /* ── Section spacing ─────────────────────────────────────────*/
+  .section-gap {
+    @apply space-y-5;
+  }
+
+  /* ── Live indicator ──────────────────────────────────────────*/
+  .indicator-live {
+    animation: telemetry-blink 1.4s ease-in-out infinite;
+  }
+
+  /* ── Scan shimmer for loading states ─────────────────────────*/
+  .scan-shimmer {
+    background: linear-gradient(
+      90deg,
+      #18181e 0%,
+      #18181e 30%,
+      #222228 50%,
+      #18181e 70%,
+      #18181e 100%
+    );
+    background-size: 200% 100%;
+    animation: scan 1.6s ease-in-out infinite;
   }
 }

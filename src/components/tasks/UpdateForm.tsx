@@ -1,9 +1,13 @@
-"use client";
+﻿"use client";
 
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useId, useState } from "react";
 import { submitUpdate } from "@/actions/tasks";
 import { createClient } from "@/lib/supabase/client";
 import { Database } from "@/lib/database/database.types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 type TaskStatus = Database["public"]["Enums"]["task_status"];
 type UserRole = Database["public"]["Enums"]["user_role"];
@@ -49,7 +53,6 @@ export function UpdateForm({
   assignedTo,
   userRole,
   userId,
-  createdBy,
 }: UpdateFormProps) {
   const [content, setContent] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -57,6 +60,7 @@ export function UpdateForm({
   const [uploadError, setUploadError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const attachmentInputId = useId();
 
   const isMemberAssignedToTask = assignedTo === userId && userRole === "MEMBER";
   const isBoardOrAdmin = userRole === "BOARD" || userRole === "ADMIN";
@@ -78,7 +82,9 @@ export function UpdateForm({
       return;
     }
 
-    const invalidFiles = files.filter((file) => file.size > MAX_FILE_SIZE_BYTES || !isAllowedFile(file));
+    const invalidFiles = files.filter(
+      (file) => file.size > MAX_FILE_SIZE_BYTES || !isAllowedFile(file)
+    );
 
     if (invalidFiles.length > 0) {
       setUploadError("Each file must be 25MB or smaller and use a supported type.");
@@ -230,23 +236,101 @@ export function UpdateForm({
     });
   };
 
+  const fileInputClassName = "peer sr-only";
+
+  const renderFileList = () =>
+    selectedFiles.length > 0 ? (
+      <div className="space-y-2">
+        {selectedFiles.map((file, index) => (
+          <div
+            key={`${file.name}-${index}`}
+            className="flex items-center justify-between rounded-md border border-zinc-800 bg-zinc-950/50 px-3 py-2"
+          >
+            <div className="min-w-0">
+              <p className="truncate text-sm text-zinc-200">{file.name}</p>
+              <p className="text-xs text-zinc-500">{formatFileSize(file.size)}</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {uploadProgress[file.name] !== undefined && (
+                <div className="w-20">
+                  <div className="h-1 w-full rounded-full bg-zinc-800">
+                    <div
+                      className="h-1 rounded-full bg-zinc-400 transition-all"
+                      style={{ width: `${uploadProgress[file.name]}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => removeSelectedFile(index)}
+                className="text-sm text-zinc-500 hover:text-red-400"
+                disabled={isLoading}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : null;
+
+  const renderAttachments = () => (
+    <div className="space-y-2.5">
+      <Label htmlFor={attachmentInputId}>Attachments (optional)</Label>
+      <input
+        id={attachmentInputId}
+        type="file"
+        multiple
+        accept="image/*,application/pdf,.dwg,.step,.stl"
+        onChange={handleFileSelection}
+        disabled={isLoading}
+        className={fileInputClassName}
+        aria-describedby={`${attachmentInputId}-help`}
+      />
+      <label
+        htmlFor={attachmentInputId}
+        className="flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-zinc-700 bg-zinc-950 px-4 py-5 text-center transition-colors hover:border-zinc-500 hover:bg-zinc-900/70 peer-focus-visible:border-red-500 peer-focus-visible:ring-3 peer-focus-visible:ring-red-500/20 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
+      >
+        <span className="text-sm font-medium text-zinc-200">
+          Choose files to upload
+        </span>
+        <span id={`${attachmentInputId}-help`} className="mt-1 text-xs text-zinc-500">
+          Up to 5 files, 25MB each. Images, PDF, DWG, STEP, STL.
+        </span>
+        {selectedFiles.length > 0 ? (
+          <span className="mt-2 text-xs text-zinc-400">
+            {selectedFiles.length} file{selectedFiles.length === 1 ? "" : "s"} selected
+          </span>
+        ) : null}
+      </label>
+      {renderFileList()}
+    </div>
+  );
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
+    <Card>
       {isMemberAssignedToTask && (
-        <div className="space-y-4">
-          <h3 className="font-semibold text-gray-900">Submit Update</h3>
+        <CardContent className="space-y-4 pt-5">
+          <CardHeader className="p-0">
+            <CardTitle className="text-sm font-medium text-zinc-400">
+              Submit Update
+            </CardTitle>
+          </CardHeader>
 
           {taskStatus === "TODO" && (
-            <button
+            <Button
               onClick={handleStartWork}
               disabled={isLoading}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+              className="w-full"
             >
               {isLoading ? "Starting..." : "Start Work"}
-            </button>
+            </Button>
           )}
 
-          <textarea
+          <Textarea
             value={content}
             onChange={(e) => {
               setContent(e.target.value);
@@ -256,187 +340,105 @@ export function UpdateForm({
               taskStatus === "TODO"
                 ? "Share your progress update..."
                 : taskStatus === "IN_PROGRESS"
-                ? "Share your progress or submit for review..."
-                : "Add a comment..."
+                  ? "Share your progress or submit for review..."
+                  : "Add a comment..."
             }
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             rows={4}
           />
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Attachments (optional)</label>
-            <input
-              type="file"
-              multiple
-              accept="image/*,application/pdf,.dwg,.step,.stl"
-              onChange={handleFileSelection}
-              disabled={isLoading}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
-            <p className="text-xs text-gray-500">Up to 5 files, 25MB each. Supported: images, PDF, DWG, STEP, STL.</p>
+          {renderAttachments()}
 
-            {selectedFiles.length > 0 && (
-              <div className="space-y-2">
-                {selectedFiles.map((file, index) => (
-                  <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-gray-900">{file.name}</p>
-                      <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {uploadProgress[file.name] !== undefined && (
-                        <div className="w-24">
-                          <div className="h-2 w-full rounded-full bg-gray-200">
-                            <div
-                              className="h-2 rounded-full bg-blue-600"
-                              style={{ width: `${uploadProgress[file.name]}%` }}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => removeSelectedFile(index)}
-                        className="text-sm text-gray-500 hover:text-red-600"
-                        disabled={isLoading}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-3">
-            <button
+          <div className="flex gap-2">
+            <Button
               onClick={handleSubmitProgress}
               disabled={isLoading || !content.trim()}
-              className="flex-1 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 disabled:opacity-50"
+              variant="outline"
+              className="flex-1"
             >
               {isLoading ? "Submitting..." : "Submit Progress"}
-            </button>
+            </Button>
 
             {taskStatus === "IN_PROGRESS" && (
-              <button
+              <Button
                 onClick={handleSubmitForReview}
                 disabled={isLoading}
-                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50"
+                className="flex-1"
               >
                 {isLoading ? "Submitting..." : "Submit for Review"}
-              </button>
+              </Button>
             )}
           </div>
-        </div>
+        </CardContent>
       )}
 
       {isBoardOrAdmin && (
-        <div className="space-y-4">
-          <h3 className="font-semibold text-gray-900">
-            {isMemberAssignedToTask ? "Board Actions" : "Add Comment"}
-          </h3>
+        <CardContent className="space-y-4 pt-5">
+          <CardHeader className="p-0">
+            <CardTitle className="text-sm font-medium text-zinc-400">
+              {isMemberAssignedToTask ? "Board Actions" : "Add Comment"}
+            </CardTitle>
+          </CardHeader>
 
-          <textarea
+          <Textarea
             value={content}
             onChange={(e) => {
               setContent(e.target.value);
               setError("");
             }}
             placeholder="Add a comment..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             rows={4}
           />
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Attachments (optional)</label>
-            <input
-              type="file"
-              multiple
-              accept="image/*,application/pdf,.dwg,.step,.stl"
-              onChange={handleFileSelection}
-              disabled={isLoading}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
-            <p className="text-xs text-gray-500">Up to 5 files, 25MB each. Supported: images, PDF, DWG, STEP, STL.</p>
+          {renderAttachments()}
 
-            {selectedFiles.length > 0 && (
-              <div className="space-y-2">
-                {selectedFiles.map((file, index) => (
-                  <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-gray-900">{file.name}</p>
-                      <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {uploadProgress[file.name] !== undefined && (
-                        <div className="w-24">
-                          <div className="h-2 w-full rounded-full bg-gray-200">
-                            <div
-                              className="h-2 rounded-full bg-blue-600"
-                              style={{ width: `${uploadProgress[file.name]}%` }}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => removeSelectedFile(index)}
-                        className="text-sm text-gray-500 hover:text-red-600"
-                        disabled={isLoading}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-3">
-            <button
+          <div className="flex flex-wrap gap-2">
+            <Button
               onClick={handlePostComment}
               disabled={isLoading || !content.trim()}
-              className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 disabled:opacity-50"
+              variant="outline"
+              className="flex-1"
             >
               {isLoading ? "Posting..." : "Post Comment"}
-            </button>
+            </Button>
 
             {taskStatus === "IN_REVIEW" && (
               <>
-                <button
+                <Button
                   onClick={handleApprove}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
+                  className="flex-1"
                 >
                   {isLoading ? "Approving..." : "Approve"}
-                </button>
+                </Button>
 
-                <button
+                <Button
                   onClick={handleRequestChanges}
                   disabled={isLoading || !content.trim()}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
+                  variant="destructive"
+                  className="flex-1"
                 >
                   {isLoading ? "Sending..." : "Request Changes"}
-                </button>
+                </Button>
               </>
             )}
           </div>
-        </div>
+        </CardContent>
       )}
 
       {uploadError && (
-        <div className="mt-4 rounded bg-red-50 p-3 text-sm text-red-600">{uploadError}</div>
+        <div className="mx-5 mb-5 rounded-md border border-red-500/30 bg-red-500/5 p-3 text-sm text-red-400">
+          {uploadError}
+        </div>
       )}
 
       {error && (
-        <div className="mt-4 rounded bg-red-50 p-3 text-sm text-red-600">{error}</div>
+        <div className="mx-5 mb-5 rounded-md border border-red-500/30 bg-red-500/5 p-3 text-sm text-red-400">
+          {error}
+        </div>
       )}
-    </div>
+    </Card>
   );
 }
+
+
+

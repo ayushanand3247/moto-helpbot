@@ -1,104 +1,65 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TaskCard } from "@/components/tasks/TaskCard";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ListFilter } from "lucide-react";
 
-type Props = {
-  tasks: any[];
-  subsystems: any[];
+type Task = {
+  id: string;
+  title: string;
+  status: string | null;
+  priority: string | null;
+  deadline: string | null;
+  subsystem_id: string | null;
+  profiles?: { id: string; full_name: string | null }[] | null;
+  subsystems?: { id: string; name: string | null }[] | null;
 };
 
-const taskStatuses = [
-  "TODO",
-  "IN_PROGRESS",
-  "IN_REVIEW",
-  "APPROVED",
-  "BLOCKED",
-];
-const taskPriorities = [
-  "LOW",
-  "MEDIUM",
-  "HIGH",
-  "CRITICAL",
-];
+type Subsystem = {
+  id: string;
+  name: string;
+};
 
-export function TasksList({
-  tasks,
-  subsystems,
-}: Props) {
-  const [statusFilter, setStatusFilter] =
-    useState<string>("");
-  const [priorityFilter, setPriorityFilter] =
-    useState<string>("");
-  const [subsystemFilter, setSubsystemFilter] =
-    useState<string>("");
+type Props = {
+  tasks: Task[];
+  subsystems: Subsystem[];
+};
+
+const taskStatuses = ["TODO", "IN_PROGRESS", "IN_REVIEW", "APPROVED", "BLOCKED"];
+const taskPriorities = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
+
+export function TasksList({ tasks, subsystems }: Props) {
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [priorityFilter, setPriorityFilter] = useState<string>("");
+  const [subsystemFilter, setSubsystemFilter] = useState<string>("");
 
   const filteredTasks = tasks.filter((task) => {
-    if (
-      statusFilter &&
-      task.status !== statusFilter
-    ) {
-      return false;
-    }
-
-    if (
-      priorityFilter &&
-      task.priority !== priorityFilter
-    ) {
-      return false;
-    }
-
-    if (
-      subsystemFilter &&
-      task.subsystem_id !== subsystemFilter
-    ) {
-      return false;
-    }
-
+    if (statusFilter && task.status !== statusFilter) return false;
+    if (priorityFilter && task.priority !== priorityFilter) return false;
+    if (subsystemFilter && task.subsystem_id !== subsystemFilter) return false;
     return true;
   });
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Tasks</h1>
-
-        <p className="text-muted-foreground">
-          All tasks visible to you.
-        </p>
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">Tasks</h1>
+        <p className="text-sm text-zinc-400">All tasks visible to you.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
-          <label className="text-sm font-semibold">
-            Status
-          </label>
-
-          <Select
-            value={statusFilter}
-            onValueChange={setStatusFilter}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All Status" />
+          <label className="text-xs font-medium uppercase tracking-wider text-zinc-500">Status</label>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="All statuses" />
             </SelectTrigger>
-
             <SelectContent>
-              <SelectItem value="">
-                All Status
-              </SelectItem>
-
+              <SelectItem value="">All statuses</SelectItem>
               {taskStatuses.map((status) => (
-                <SelectItem
-                  key={status}
-                  value={status}
-                >
+                <SelectItem key={status} value={status}>
                   {status}
                 </SelectItem>
               ))}
@@ -107,28 +68,15 @@ export function TasksList({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-semibold">
-            Priority
-          </label>
-
-          <Select
-            value={priorityFilter}
-            onValueChange={setPriorityFilter}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All Priority" />
+          <label className="text-xs font-medium uppercase tracking-wider text-zinc-500">Priority</label>
+          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="All priorities" />
             </SelectTrigger>
-
             <SelectContent>
-              <SelectItem value="">
-                All Priority
-              </SelectItem>
-
+              <SelectItem value="">All priorities</SelectItem>
               {taskPriorities.map((priority) => (
-                <SelectItem
-                  key={priority}
-                  value={priority}
-                >
+                <SelectItem key={priority} value={priority}>
                   {priority}
                 </SelectItem>
               ))}
@@ -137,28 +85,15 @@ export function TasksList({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-semibold">
-            Subsystem
-          </label>
-
-          <Select
-            value={subsystemFilter}
-            onValueChange={setSubsystemFilter}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All Subsystem" />
+          <label className="text-xs font-medium uppercase tracking-wider text-zinc-500">Subsystem</label>
+          <Select value={subsystemFilter} onValueChange={setSubsystemFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="All subsystems" />
             </SelectTrigger>
-
             <SelectContent>
-              <SelectItem value="">
-                All Subsystem
-              </SelectItem>
-
+              <SelectItem value="">All subsystems</SelectItem>
               {subsystems.map((subsystem) => (
-                <SelectItem
-                  key={subsystem.id}
-                  value={subsystem.id}
-                >
+                <SelectItem key={subsystem.id} value={subsystem.id}>
                   {subsystem.name}
                 </SelectItem>
               ))}
@@ -168,15 +103,11 @@ export function TasksList({
       </div>
 
       {filteredTasks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12">
-          <h3 className="text-lg font-semibold">
-            No tasks found
-          </h3>
-
-          <p className="text-sm text-muted-foreground">
-            Try adjusting your filters
-          </p>
-        </div>
+        <EmptyState
+          icon={ListFilter}
+          title="No tasks found"
+          description="Try adjusting your filters or check back once new work is assigned."
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredTasks.map((task) => (
@@ -186,9 +117,9 @@ export function TasksList({
               title={task.title}
               status={task.status}
               priority={task.priority}
-              assignee={task.profiles?.full_name}
+              assignee={task.profiles?.[0]?.full_name ?? null}
               deadline={task.deadline}
-              subsystem={task.subsystems?.name}
+              subsystem={task.subsystems?.[0]?.name ?? null}
             />
           ))}
         </div>

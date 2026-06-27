@@ -1,6 +1,6 @@
-import * as React from "react"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
@@ -8,12 +8,26 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
       type={type}
       data-slot="input"
       className={cn(
-        "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        // Inputs: dark background, crisp border, no decoration.
+        // On focus: red left-edge stripe — the active channel signal.
+        "h-7 w-full min-w-0 rounded-sm border border-[#222228] bg-[#0a0a0e] px-2.5 py-1 text-[12px] text-[#c8c8d0] transition-colors outline-none",
+        // File input
+        "file:inline-flex file:h-4 file:border-0 file:bg-transparent file:font-mono file:text-[10px] file:font-medium file:text-[#5a5a6a] file:uppercase file:tracking-[0.06em]",
+        // Placeholder: very dim — doesn't compete with actual data
+        "placeholder:text-[#2e2e36] placeholder:font-mono placeholder:text-[11px]",
+        // Hover
+        "hover:border-[#2a2a32]",
+        // Focus: left-edge red stripe + subtle red border glow
+        "focus-visible:border-[#e8241a]/50 focus-visible:shadow-[inset_2px_0_0_#e8241a,0_0_0_1px_rgba(232,36,26,0.08)]",
+        // Disabled
+        "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-35",
+        // Error state
+        "aria-invalid:border-[#e8241a]/60 aria-invalid:shadow-[inset_2px_0_0_#e8241a,0_0_0_1px_rgba(232,36,26,0.1)]",
         className
       )}
       {...props}
     />
-  )
+  );
 }
 
-export { Input }
+export { Input };

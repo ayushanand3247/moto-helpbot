@@ -6,20 +6,15 @@ export default async function SettingsPage() {
   const profile = await getProfile();
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">
+    <div className="mx-auto w-full max-w-2xl space-y-10">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">
           Settings
         </h1>
-
-        <p className="text-muted-foreground">
-          Manage your profile.
-        </p>
+        <p className="text-sm text-zinc-400">Manage your profile.</p>
       </div>
 
-      <ProfileForm
-        profile={profile}
-      />
+      <ProfileForm profile={profile} />
     </div>
   );
 }

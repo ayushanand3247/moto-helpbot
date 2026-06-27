@@ -1,47 +1,59 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  CreateMilestoneDialog,
-} from "@/components/milestones/CreateMilestoneDialog";
-import {
-  MilestoneCard,
-} from "@/components/milestones/MilestoneCard";
-import {
-  CreateTaskDialog,
-} from "@/components/tasks/CreateTaskDialog";
+import { StatusBadge } from "@/components/ui/badges";
+import { CreateMilestoneDialog } from "@/components/milestones/CreateMilestoneDialog";
+import { MilestoneCard } from "@/components/milestones/MilestoneCard";
+import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
 import { TaskCard } from "@/components/tasks/TaskCard";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ClipboardList } from "lucide-react";
+
+type Task = {
+  id: string;
+  title: string;
+  status: string | null;
+  priority: string | null;
+  deadline: string | null;
+  profiles?: { id: string; full_name: string | null }[] | null;
+  subsystems?: { id: string; name: string | null }[] | null;
+};
+
+type Milestone = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string | null;
+  due_date: string | null;
+  tasks?: Task[];
+};
+
+type Project = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string | null;
+  start_date: string | null;
+  target_date: string | null;
+};
+
+type Member = { id: string; full_name: string };
+type Subsystem = { id: string; name: string };
 
 type Props = {
-  project: any;
-  milestones: any[];
+  project: Project;
+  milestones: Milestone[];
   canCreate: boolean;
-  members: any[];
-  subsystems: any[];
+  members: Member[];
+  subsystems: Subsystem[];
 };
 
-const statusColors: Record<string, string> = {
-  PLANNING: "bg-blue-100 text-blue-800",
-  ACTIVE: "bg-green-100 text-green-800",
-  COMPLETED: "bg-gray-100 text-gray-800",
-  ARCHIVED: "bg-gray-200 text-gray-600",
-};
-
-export function ProjectDetail({
-  project,
-  milestones,
-  canCreate,
-  members,
-  subsystems,
-}: Props) {
+export function ProjectDetail({ project, milestones, canCreate, members, subsystems }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [taskDialogOpen, setTaskDialogOpen] =
-    useState(false);
-  const [selectedMilestoneId, setSelectedMilestoneId] =
-    useState<string | null>(null);
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
 
   const openTaskDialog = (milestoneId: string) => {
     setSelectedMilestoneId(milestoneId);
@@ -58,165 +70,83 @@ export function ProjectDetail({
       <div className="space-y-8">
         <div className="space-y-4">
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold">
-                {project.title}
-              </h1>
-
-              {project.status && (
-                <Badge
-                  className={statusColors[project.status]}
-                >
-                  {project.status}
-                </Badge>
-              )}
+            <div className="space-y-3">
+              <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">{project.title}</h1>
+              {project.status ? <StatusBadge value={project.status} /> : null}
             </div>
           </div>
 
-          <p className="text-muted-foreground">
-            {project.description ||
-              "No description provided"}
-          </p>
+          <p className="text-zinc-400">{project.description || "No description provided"}</p>
 
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-            {project.start_date && (
+            {project.start_date ? (
               <div>
-                <p className="text-sm font-semibold">
-                  Start Date
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {format(
-                    new Date(project.start_date),
-                    "MMM dd, yyyy"
-                  )}
-                </p>
+                <p className="text-sm font-semibold text-zinc-200">Start Date</p>
+                <p className="text-sm text-zinc-400">{format(new Date(project.start_date), "MMM dd, yyyy")}</p>
               </div>
-            )}
+            ) : null}
 
-            {project.target_date && (
+            {project.target_date ? (
               <div>
-                <p className="text-sm font-semibold">
-                  Target Date
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {format(
-                    new Date(project.target_date),
-                    "MMM dd, yyyy"
-                  )}
-                </p>
+                <p className="text-sm font-semibold text-zinc-200">Target Date</p>
+                <p className="text-sm text-zinc-400">{format(new Date(project.target_date), "MMM dd, yyyy")}</p>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">
-              Milestones
-            </h2>
-
-            {canCreate && (
-              <Button
-                onClick={() => setDialogOpen(true)}
-              >
-                Add Milestone
-              </Button>
-            )}
+            <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-500">Milestones</h2>
+            {canCreate ? <Button onClick={() => setDialogOpen(true)}>Add Milestone</Button> : null}
           </div>
 
           {milestones.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12">
-              <h3 className="text-lg font-semibold">
-                No milestones yet
-              </h3>
-
-              <p className="text-sm text-muted-foreground">
-                {canCreate
-                  ? "Create your first milestone to get started"
-                  : "Check back later for milestones"}
-              </p>
-
-              {canCreate && (
-                <Button
-                  className="mt-4"
-                  onClick={() => setDialogOpen(true)}
-                >
-                  Create First Milestone
-                </Button>
-              )}
-            </div>
+            <EmptyState
+              icon={ClipboardList}
+              title="No milestones yet"
+              description={canCreate ? "Create your first milestone to get started." : "Check back later for milestones."}
+              action={canCreate ? <Button onClick={() => setDialogOpen(true)}>Create First Milestone</Button> : undefined}
+            />
           ) : (
             <div className="space-y-6">
               {milestones.map((milestone) => (
-                <div
-                  key={milestone.id}
-                  className="space-y-3 rounded-lg border p-4"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <MilestoneCard
-                        id={milestone.id}
-                        title={milestone.title}
-                        description={
-                          milestone.description
-                        }
-                        status={milestone.status}
-                        due_date={milestone.due_date}
-                      />
-                    </div>
-                  </div>
+                <div key={milestone.id} className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+                  <MilestoneCard
+                    id={milestone.id}
+                    title={milestone.title}
+                    description={milestone.description}
+                    status={milestone.status}
+                    due_date={milestone.due_date}
+                  />
 
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-semibold">
-                        Tasks
-                      </h4>
-
-                      {canCreate && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            openTaskDialog(
-                              milestone.id
-                            )
-                          }
-                        >
+                      <h4 className="text-sm font-semibold text-zinc-200">Tasks</h4>
+                      {canCreate ? (
+                        <Button size="sm" variant="outline" onClick={() => openTaskDialog(milestone.id)}>
                           Add Task
                         </Button>
-                      )}
+                      ) : null}
                     </div>
 
-                    {milestone.tasks &&
-                    milestone.tasks.length > 0 ? (
+                    {milestone.tasks && milestone.tasks.length > 0 ? (
                       <div className="grid gap-2 sm:grid-cols-2">
-                        {milestone.tasks.map(
-                          (task: any) => (
-                            <TaskCard
-                              key={task.id}
-                              id={task.id}
-                              title={task.title}
-                              status={task.status}
-                              priority={task.priority}
-                              assignee={
-                                task.profiles
-                                  ?.full_name
-                              }
-                              deadline={
-                                task.deadline
-                              }
-                              subsystem={
-                                task.subsystems
-                                  ?.name
-                              }
-                            />
-                          )
-                        )}
+                        {milestone.tasks.map((task) => (
+                          <TaskCard
+                            key={task.id}
+                            id={task.id}
+                            title={task.title}
+                            status={task.status}
+                            priority={task.priority}
+                            assignee={task.profiles?.[0]?.full_name ?? null}
+                            deadline={task.deadline}
+                            subsystem={task.subsystems?.[0]?.name ?? null}
+                          />
+                        ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">
-                        No tasks yet
-                      </p>
+                      <p className="text-sm text-zinc-400">No tasks yet</p>
                     )}
                   </div>
                 </div>
@@ -226,13 +156,9 @@ export function ProjectDetail({
         </div>
       </div>
 
-      <CreateMilestoneDialog
-        projectId={project.id}
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-      />
+      <CreateMilestoneDialog projectId={project.id} open={dialogOpen} onOpenChange={setDialogOpen} />
 
-      {selectedMilestoneId && (
+      {selectedMilestoneId ? (
         <CreateTaskDialog
           milestoneId={selectedMilestoneId}
           projectId={project.id}
@@ -241,7 +167,7 @@ export function ProjectDetail({
           members={members}
           subsystems={subsystems}
         />
-      )}
+      ) : null}
     </>
   );
 }

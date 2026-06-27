@@ -1,27 +1,21 @@
-"use server";
+﻿"use server";
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-export async function login(formData: FormData) {
+export async function login(prevState: { error?: string } | undefined, formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  console.log("EMAIL:", email);
-  console.log("PASSWORD EXISTS:", !!password);
-
   const supabase = await createClient();
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
-  console.log("USER:", data.user?.email);
-  console.log("ERROR:", error);
-
   if (error) {
-    throw new Error(error.message);
+    return { error: error.message };
   }
 
   redirect("/dashboard");

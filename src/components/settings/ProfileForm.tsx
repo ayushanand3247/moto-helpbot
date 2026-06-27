@@ -1,102 +1,104 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
 import { updateProfile } from "@/actions/profile/update-profile";
-
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { ProfileWithSubsystem } from "@/types/profile";
+
+const profileSchema = z.object({
+  full_name: z.string().min(2, "Full name must be at least 2 characters"),
+  phone: z.string().optional(),
+  skills: z.string().optional(),
+});
+
+type ProfileFormValues = z.infer<typeof profileSchema>;
 
 type Props = {
   profile: ProfileWithSubsystem;
 };
 
-export function ProfileForm({
-  profile,
-}: Props) {
-  const [message, setMessage] =
-    useState("");
+export function ProfileForm({ profile }: Props) {
+  const [message, setMessage] = useState("");
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      full_name: profile.full_name,
+      phone: profile.phone ?? "",
+      skills: profile.skills?.join(", ") ?? "",
+    },
+  });
 
-  async function handleSubmit(
-    formData: FormData
-  ) {
-    const result =
-      await updateProfile(formData);
+  async function handleSubmit(values: ProfileFormValues) {
+    const formData = new FormData();
+    formData.append("full_name", values.full_name);
+    formData.append("phone", values.phone ?? "");
+    formData.append("skills", values.skills ?? "");
 
+    const result = await updateProfile(formData);
     setMessage(result.message);
   }
 
   return (
-    <form
-      action={handleSubmit}
-      className="space-y-6 max-w-2xl"
-    >
-      <div>
-        <label className="block mb-2">
-          Full Name
-        </label>
-
-        <input
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 max-w-2xl">
+        <FormField
+          control={form.control}
           name="full_name"
-          defaultValue={
-            profile.full_name
-          }
-          className="w-full rounded-md border p-2"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Full Name</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div>
-        <label className="block mb-2">
-          Email
-        </label>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-zinc-200">Email</label>
+          <Input value={profile.email} disabled className="bg-zinc-800 text-zinc-400" />
+        </div>
 
-        <input
-          disabled
-          value={profile.email}
-          className="w-full rounded-md border p-2 bg-muted"
-        />
-      </div>
-
-      <div>
-        <label className="block mb-2">
-          Phone
-        </label>
-
-        <input
+        <FormField
+          control={form.control}
           name="phone"
-          defaultValue={
-            profile.phone ?? ""
-          }
-          className="w-full rounded-md border p-2"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div>
-        <label className="block mb-2">
-          Skills
-        </label>
-
-        <input
+        <FormField
+          control={form.control}
           name="skills"
-          defaultValue={
-            profile.skills?.join(", ") ??
-            ""
-          }
-          className="w-full rounded-md border p-2"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Skills</FormLabel>
+              <FormControl>
+                <Input placeholder="Design, CAE, fabrication" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <button
-        type="submit"
-        className="rounded-md border px-4 py-2"
-      >
-        Save Changes
-      </button>
+        <Button type="submit">Save Changes</Button>
 
-      {message && (
-        <p className="text-sm">
-          {message}
-        </p>
-      )}
-    </form>
+        {message ? <p className="text-sm text-zinc-400">{message}</p> : null}
+      </form>
+    </Form>
   );
 }
+

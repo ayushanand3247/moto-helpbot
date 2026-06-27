@@ -57,20 +57,19 @@ export function TaskTimeline({
 }: TaskTimelineProps) {
   return (
     <div className="space-y-0">
-      {/* Task creation entry */}
       {createdBy && createdAt && (
         <div className="pb-8">
           <div className="flex gap-4">
             <div className="flex flex-col items-center">
-              <div className="w-3 h-3 rounded-full bg-gray-800 mt-2" />
-              <div className="w-0.5 h-16 mt-2 bg-gray-200" />
+              <div className="mt-1.5 size-2 rounded-full bg-zinc-600" />
+              <div className="mt-2 w-px flex-1 bg-zinc-800" />
             </div>
-            <div className="flex-1 mt-1">
-              <p className="text-sm font-medium text-gray-900">
-                {createdBy.full_name} created task
+            <div className="flex-1 pt-0.5">
+              <p className="text-sm text-zinc-200">
+                <span className="font-medium">{createdBy.full_name}</span> created task
               </p>
-              <p className="text-sm text-gray-600 mt-1">{taskTitle}</p>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="mt-1 text-sm text-zinc-400">{taskTitle}</p>
+              <p className="mt-1.5 font-mono text-xs text-zinc-500">
                 {formatTimelineDate(createdAt)} at {formatTimelineTime(createdAt)}
               </p>
             </div>
@@ -78,32 +77,23 @@ export function TaskTimeline({
         </div>
       )}
 
-      {/* Updates timeline */}
       {updates.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <p className="text-sm">No activity yet</p>
+        <div className="py-12 text-center">
+          <p className="text-sm text-zinc-500">No activity yet</p>
         </div>
       ) : (
-        updates.map((update, index) => (
-          <div key={update.id}>
-            <TimelineEntry
-              id={update.id}
-              updateType={update.update_type}
-              content={update.content}
-              oldStatus={update.old_status}
-              newStatus={update.new_status}
-              author={update.author}
-              createdAt={update.created_at}
-              attachments={update.attachments}
-            />
-            {index === updates.length - 1 && (
-              <div className="flex gap-4 pt-4">
-                <div className="flex flex-col items-center">
-                  <div className="w-3 h-3 rounded-full bg-gray-300 mt-2" />
-                </div>
-              </div>
-            )}
-          </div>
+        updates.map((update) => (
+          <TimelineEntry
+            key={update.id}
+            id={update.id}
+            updateType={update.update_type}
+            content={update.content}
+            oldStatus={update.old_status}
+            newStatus={update.new_status}
+            author={update.author}
+            createdAt={update.created_at}
+            attachments={update.attachments}
+          />
         ))
       )}
     </div>

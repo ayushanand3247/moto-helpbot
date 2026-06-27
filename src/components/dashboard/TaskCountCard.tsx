@@ -9,17 +9,14 @@ type Props = {
   count: number;
 };
 
-export function TaskCountCard({
-  count,
-}: Props) {
+export function TaskCountCard({ count }: Props) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Assigned Tasks</CardTitle>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium text-zinc-400">Assigned Tasks</CardTitle>
       </CardHeader>
-
       <CardContent>
-        <p className="text-2xl font-semibold">
+        <p className="text-2xl font-semibold tracking-tight text-zinc-100">
           {count}
         </p>
       </CardContent>

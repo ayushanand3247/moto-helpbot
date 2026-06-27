@@ -12,12 +12,11 @@ type Props = {
 export function RoleCard({ role }: Props) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Role</CardTitle>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium text-zinc-400">Role</CardTitle>
       </CardHeader>
-
       <CardContent>
-        <p className="text-2xl font-semibold">
+        <p className="text-2xl font-semibold tracking-tight text-zinc-100">
           {role}
         </p>
       </CardContent>

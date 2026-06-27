@@ -1,68 +1,49 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
-import {
-  CreateProjectDialog,
-} from "@/components/projects/CreateProjectDialog";
-import {
-  ProjectCard,
-} from "@/components/projects/ProjectCard";
+import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
+import { ProjectCard } from "@/components/projects/ProjectCard";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { FolderPlus } from "lucide-react";
+
+type Project = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string | null;
+  target_date: string | null;
+};
 
 type Props = {
-  projects: any[];
+  projects: Project[];
   canCreate: boolean;
 };
 
-export function ProjectsList({
-  projects,
-  canCreate,
-}: Props) {
+export function ProjectsList({ projects, canCreate }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">
-            Projects
-          </h1>
-
-          <p className="text-muted-foreground">
-            Manage all projects and milestones.
-          </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">Projects</h1>
+          <p className="text-sm text-zinc-400">Manage all projects and milestones.</p>
         </div>
 
-        {canCreate && (
-          <Button
-            onClick={() => setDialogOpen(true)}
-          >
-            New Project
-          </Button>
-        )}
+        {canCreate ? (
+          <Button onClick={() => setDialogOpen(true)}>New Project</Button>
+        ) : null}
       </div>
 
       {projects.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12">
-          <h3 className="text-lg font-semibold">
-            No projects yet
-          </h3>
-
-          <p className="text-sm text-muted-foreground">
-            {canCreate
-              ? "Create your first project to get started"
-              : "Check back later for projects"}
-          </p>
-
-          {canCreate && (
-            <Button
-              className="mt-4"
-              onClick={() => setDialogOpen(true)}
-            >
-              Create First Project
-            </Button>
-          )}
-        </div>
+        <EmptyState
+          icon={FolderPlus}
+          title="No projects yet"
+          description={canCreate ? "Create your first project to get the team moving." : "Check back later for projects."}
+          action={canCreate ? <Button onClick={() => setDialogOpen(true)}>Create First Project</Button> : undefined}
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
@@ -78,10 +59,8 @@ export function ProjectsList({
         </div>
       )}
 
-      <CreateProjectDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-      />
+      <CreateProjectDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </>
   );
 }
+

@@ -1,7 +1,8 @@
-"use client";
-
-import { formatDistanceToNow, format } from "date-fns";
+﻿import { formatDistanceToNow, format } from "date-fns";
 import { Database } from "@/lib/database/database.types";
+import { StatusBadge } from "@/components/ui/badges";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 type UpdateType = Database["public"]["Enums"]["update_type"];
 
@@ -38,126 +39,105 @@ export function TimelineEntry({
 }: TimelineEntryProps) {
   const timestamp = createdAt ? new Date(createdAt) : new Date();
   const isRecent = createdAt
-    ? Date.now() - new Date(createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
+    ? new Date().getTime() - timestamp.getTime() < 7 * 24 * 60 * 60 * 1000
     : false;
   const timeString = isRecent
     ? formatDistanceToNow(timestamp, { addSuffix: true })
     : format(timestamp, "MMM d 'at' h:mm a");
 
-  const getStatusBadge = (status: string) => {
-    const statusColors: Record<string, string> = {
-      TODO: "bg-gray-100 text-gray-800",
-      IN_PROGRESS: "bg-blue-100 text-blue-800",
-      IN_REVIEW: "bg-purple-100 text-purple-800",
-      APPROVED: "bg-green-100 text-green-800",
-      BLOCKED: "bg-red-100 text-red-800",
-    };
-    return statusColors[status] || "bg-gray-100 text-gray-800";
-  };
+  const isComment = updateType === "COMMENT";
+  const isProgress = updateType === "PROGRESS";
 
   return (
-    <div className="flex gap-4 pb-8 relative">
-      {/* Left border */}
+    <div className="relative flex gap-4 pb-8">
       <div className="flex flex-col items-center">
         <div
-          className={`w-3 h-3 rounded-full mt-2 ${
-            updateType === "PROGRESS"
-              ? "bg-blue-500"
-              : updateType === "APPROVAL"
-              ? "bg-green-500"
+          className={cn(
+            "mt-1.5 size-2 rounded-full",
+            updateType === "APPROVAL"
+              ? "bg-emerald-500/60"
               : updateType === "REJECTION"
-              ? "bg-red-500"
-              : "bg-gray-400"
-          }`}
+                ? "bg-red-500/60"
+                : isProgress
+                  ? "bg-red-600"
+                  : "bg-zinc-600"
+          )}
         />
-        <div
-          className={`w-0.5 flex-1 mt-2 ${
-            updateType === "PROGRESS"
-              ? "bg-blue-200"
-              : updateType === "APPROVAL"
-              ? "bg-green-200"
-              : updateType === "REJECTION"
-              ? "bg-red-200"
-              : "bg-gray-200"
-          }`}
-        />
+        <div className="mt-2 w-px flex-1 bg-zinc-800" />
       </div>
 
-      {/* Content */}
-      <div className="flex-1 mt-1">
+      <div className="min-w-0 flex-1 pt-0.5">
         {updateType === "STATUS_CHANGE" ? (
-          // Compact status change
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">{author.full_name}</span> changed
-            status from{" "}
-            <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${getStatusBadge(oldStatus || "TODO")}`}>
-              {oldStatus}
-            </span>{" "}
-            to{" "}
-            <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${getStatusBadge(newStatus || "TODO")}`}>
-              {newStatus}
-            </span>
-            <div className="text-xs text-gray-500 mt-1">{timeString}</div>
+          <div className="text-sm text-zinc-400">
+            <span className="font-medium text-zinc-200">{author.full_name}</span>{" "}
+            changed status from{" "}
+            <StatusBadge value={oldStatus || "TODO"} /> to{" "}
+            <StatusBadge value={newStatus || "TODO"} />
+            <p className="mt-1.5 text-xs text-zinc-500">{timeString}</p>
           </div>
         ) : updateType === "APPROVAL" ? (
-          // Approval banner
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-sm font-medium text-green-800">
-              ✓ Task approved by {author.full_name}
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-3">
+            <p className="text-sm text-zinc-200">
+              Approved by{" "}
+              <span className="font-medium">{author.full_name}</span>
             </p>
-            <p className="text-xs text-green-700 mt-1">{timeString}</p>
+            <p className="mt-1 text-xs text-zinc-500">{timeString}</p>
           </div>
         ) : updateType === "REJECTION" ? (
-          // Rejection banner
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm font-medium text-red-800">
-              Changes requested by {author.full_name}
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-3">
+            <p className="text-sm text-zinc-200">
+              Changes requested by{" "}
+              <span className="font-medium">{author.full_name}</span>
             </p>
-            {content && (
-              <p className="text-sm text-red-700 mt-2 whitespace-pre-wrap">
+            {content ? (
+              <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-400">
                 {content}
               </p>
-            )}
-            <p className="text-xs text-red-600 mt-2">{timeString}</p>
+            ) : null}
+            <p className="mt-2 text-xs text-zinc-500">{timeString}</p>
           </div>
         ) : (
-          // Progress or Comment card
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium overflow-hidden">
+          <div
+            className={cn(
+              "rounded-lg border px-4 py-3",
+              isComment
+                ? "border-zinc-800/60 bg-transparent"
+                : "border-zinc-800 bg-zinc-900/50"
+            )}
+          >
+            <div className="mb-3 flex items-center gap-3">
+              <Avatar className="size-7 border border-zinc-800">
                 {author.avatar_url ? (
                   <img
                     src={author.avatar_url}
                     alt={author.full_name}
-                    className="w-full h-full object-cover"
+                    className="size-full object-cover"
                   />
                 ) : (
-                  author.full_name.charAt(0)
+                  <AvatarFallback className="bg-zinc-800 text-[10px] text-zinc-300">
+                    {author.full_name.charAt(0)}
+                  </AvatarFallback>
                 )}
-              </div>
+              </Avatar>
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-zinc-200">
                   {author.full_name}
                 </p>
-                <p className="text-xs text-gray-500">
-                  {updateType === "PROGRESS"
-                    ? "Progress Update"
-                    : "Comment"}{" "}
-                  • {timeString}
+                <p className="text-xs text-zinc-500">
+                  {isProgress ? "Progress update" : "Comment"} - {timeString}
                 </p>
               </div>
             </div>
-            {content && (
-              <p className="text-sm text-gray-700 whitespace-pre-wrap mb-3">
+            {content ? (
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
                 {content}
               </p>
-            )}
+            ) : null}
 
-            {/* Attachments */}
-            {attachments && attachments.length > 0 && (
-              <div className="mt-3 space-y-2 border-t border-gray-100 pt-3">
+            {attachments && attachments.length > 0 ? (
+              <div className="mt-3 space-y-2 border-t border-zinc-800 pt-3">
                 {attachments.map((attachment) => (
-                  <div key={attachment.id} className="flex items-center gap-2">
+                  <div key={attachment.id}>
                     {attachment.file_type?.startsWith("image/") ? (
                       <a
                         href={attachment.file_url}
@@ -168,31 +148,32 @@ export function TimelineEntry({
                         <img
                           src={attachment.file_url}
                           alt={attachment.file_name}
-                          className="max-w-xs h-auto rounded border border-gray-200"
+                          className="max-w-full rounded-md border border-zinc-800 sm:max-w-xs"
                         />
                       </a>
                     ) : (
                       <a
                         href={attachment.file_url}
                         download={attachment.file_name}
-                        className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+                        className="flex min-w-0 items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200"
                       >
-                        <span>📎</span>
-                        <span>{attachment.file_name}</span>
-                        {attachment.file_size_bytes && (
-                          <span className="text-xs text-gray-500">
+                        <span className="truncate">{attachment.file_name}</span>
+                        {attachment.file_size_bytes ? (
+                          <span className="text-xs text-zinc-500">
                             ({(attachment.file_size_bytes / 1024).toFixed(1)} KB)
                           </span>
-                        )}
+                        ) : null}
                       </a>
                     )}
                   </div>
                 ))}
               </div>
-            )}
+            ) : null}
           </div>
         )}
       </div>
     </div>
   );
 }
+
+

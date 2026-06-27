@@ -1,4 +1,5 @@
 import { logout } from "@/actions/auth";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   name: string;
@@ -7,14 +8,16 @@ type Props = {
 
 export function UserMenu({ name, role }: Props) {
   return (
-    <div>
-      <p>{name}</p>
-      <p>{role}</p>
+    <div className="ml-auto flex items-center gap-4">
+      <div className="hidden text-right sm:block">
+        <p className="text-sm font-medium text-zinc-100">{name}</p>
+        <p className="text-xs text-zinc-500">{role}</p>
+      </div>
 
       <form action={logout}>
-        <button type="submit">
+        <Button type="submit" variant="outline" size="sm">
           Logout
-        </button>
+        </Button>
       </form>
     </div>
   );

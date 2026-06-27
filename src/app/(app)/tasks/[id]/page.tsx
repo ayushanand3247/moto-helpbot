@@ -1,10 +1,11 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { getProfile } from "@/lib/auth/get-profile";
 import { getTask } from "@/lib/tasks/get-task";
 import { TaskTimeline } from "@/components/tasks/TaskTimeline";
 import { MetadataPanel } from "@/components/tasks/MetadataPanel";
 import { UpdateForm } from "@/components/tasks/UpdateForm";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function TaskDetailPage({
   params,
@@ -26,47 +27,61 @@ export default async function TaskDetailPage({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="border-b border-gray-200 pb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{task.title}</h1>
+    <div className="mx-auto w-full max-w-6xl space-y-8">
+      <div className="space-y-2 border-b border-zinc-800 pb-8">
+        <p className="font-mono text-xs text-zinc-500">{task.id.slice(0, 8)}</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">
+          {task.title}
+        </h1>
         {task.description && (
-          <p className="text-gray-600">{task.description}</p>
+          <p className="max-w-3xl text-sm leading-relaxed text-zinc-400">
+            {task.description}
+          </p>
         )}
       </div>
 
-      {/* Two-column layout: Timeline (60%) + Metadata (40%) */}
-      <div className="grid grid-cols-3 gap-8">
-        {/* Timeline - 2/3 width */}
-        <div className="col-span-2">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            Activity Timeline
-          </h2>
-          <TaskTimeline
-            updates={task.task_updates || []}
-            taskTitle={task.title}
-            createdAt={task.created_at}
-            createdBy={task.created_by_profile}
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-8">
+          <section className="space-y-6" aria-labelledby="task-activity-heading">
+            <h2
+              id="task-activity-heading"
+              className="text-sm font-medium uppercase tracking-wider text-zinc-500"
+            >
+              Activity
+            </h2>
+            <TaskTimeline
+              updates={task.task_updates || []}
+              taskTitle={task.title}
+              createdAt={task.created_at}
+              createdBy={task.created_by_profile}
+            />
+          </section>
+
+          <UpdateForm
+            taskId={task.id}
+            taskStatus={task.status || "TODO"}
+            assignedTo={task.assigned_to}
+            userRole={profile.role}
+            userId={profile.id}
+            createdBy={task.created_by}
           />
         </div>
 
-        {/* Metadata Panel - 1/3 width */}
-        <div className="col-span-1">
-          <div className="sticky top-4 space-y-6">
-            <MetadataPanel task={task} />
-
-            {/* Update Form */}
-            <UpdateForm
-              taskId={task.id}
-              taskStatus={task.status || "TODO"}
-              assignedTo={task.assigned_to}
-              userRole={profile.role}
-              userId={profile.id}
-              createdBy={task.created_by}
-            />
-          </div>
-        </div>
+        <aside className="min-w-0 lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto" aria-label="Task details">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-zinc-400">
+                Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MetadataPanel task={task} />
+            </CardContent>
+          </Card>
+        </aside>
       </div>
     </div>
   );
 }
+
+

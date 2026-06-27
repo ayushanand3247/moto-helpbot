@@ -17,7 +17,11 @@ function Avatar({
       data-slot="avatar"
       data-size={size}
       className={cn(
-        "group/avatar relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:border-border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 dark:after:mix-blend-lighten",
+        // Square with tight radius — not a social app bubble, a team roster tag
+        "group/avatar relative flex size-6 shrink-0 rounded-sm select-none",
+        "data-[size=lg]:size-8 data-[size=sm]:size-5",
+        // Inset border — subtle panel edge
+        "after:absolute after:inset-0 after:rounded-[inherit] after:border after:border-black/30",
         className
       )}
       {...props}
@@ -32,10 +36,7 @@ function AvatarImage({
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
-      className={cn(
-        "aspect-square size-full rounded-full object-cover",
-        className
-      )}
+      className={cn("aspect-square size-full rounded-[inherit] object-cover", className)}
       {...props}
     />
   )
@@ -49,7 +50,9 @@ function AvatarFallback({
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
       className={cn(
-        "flex size-full items-center justify-center rounded-full bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs",
+        // Mono initials: tabular, tracked — read as an ID tag, not a profile picture
+        "flex size-full items-center justify-center rounded-[inherit] bg-[#14141a] font-mono text-[8px] font-semibold uppercase tracking-[0.06em] text-[#5a5a6a]",
+        "group-data-[size=sm]/avatar:text-[7px] group-data-[size=lg]/avatar:text-[10px]",
         className
       )}
       {...props}
@@ -62,10 +65,10 @@ function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
     <span
       data-slot="avatar-badge"
       className={cn(
-        "absolute right-0 bottom-0 z-10 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground bg-blend-color ring-2 ring-background select-none",
-        "group-data-[size=sm]/avatar:size-2 group-data-[size=sm]/avatar:[&>svg]:hidden",
-        "group-data-[size=default]/avatar:size-2.5 group-data-[size=default]/avatar:[&>svg]:size-2",
-        "group-data-[size=lg]/avatar:size-3 group-data-[size=lg]/avatar:[&>svg]:size-2",
+        "absolute right-0 bottom-0 z-10 inline-flex items-center justify-center rounded-full bg-[#e8241a] ring-2 ring-background select-none",
+        "group-data-[size=sm]/avatar:size-1.5 group-data-[size=sm]/avatar:[&>svg]:hidden",
+        "group-data-[size=default]/avatar:size-2 group-data-[size=default]/avatar:[&>svg]:size-1.5",
+        "group-data-[size=lg]/avatar:size-2.5 group-data-[size=lg]/avatar:[&>svg]:size-1.5",
         className
       )}
       {...props}
@@ -78,7 +81,7 @@ function AvatarGroup({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="avatar-group"
       className={cn(
-        "group/avatar-group flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background",
+        "group/avatar-group flex -space-x-1 *:data-[slot=avatar]:ring-1 *:data-[slot=avatar]:ring-[#050507]",
         className
       )}
       {...props}
@@ -94,7 +97,9 @@ function AvatarGroupCount({
     <div
       data-slot="avatar-group-count"
       className={cn(
-        "relative flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm text-muted-foreground ring-2 ring-background group-has-data-[size=lg]/avatar-group:size-10 group-has-data-[size=sm]/avatar-group:size-6 [&>svg]:size-4 group-has-data-[size=lg]/avatar-group:[&>svg]:size-5 group-has-data-[size=sm]/avatar-group:[&>svg]:size-3",
+        "relative flex size-6 shrink-0 items-center justify-center rounded-sm bg-[#14141a] font-mono text-[8px] font-semibold text-[#52525f] ring-1 ring-[#050507]",
+        "group-has-data-[size=lg]/avatar-group:size-8 group-has-data-[size=sm]/avatar-group:size-5",
+        "[&>svg]:size-3 group-has-data-[size=lg]/avatar-group:[&>svg]:size-3.5 group-has-data-[size=sm]/avatar-group:[&>svg]:size-2.5",
         className
       )}
       {...props}
