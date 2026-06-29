@@ -1,8 +1,8 @@
+import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { SubsystemKey } from "@/components/ui/SubsystemCard";
 
 type SubsystemStat = {
-  name: SubsystemKey;
+  name: string;
   progress: number;
   taskCount: number;
   avatars: { initials: string; name: string }[];
@@ -18,35 +18,26 @@ function getInitials(fullName: string): string {
 }
 
 export async function getSubsystemStats(): Promise<SubsystemStat[]> {
-  const supabase = await createClient();
+  // Use adminClient for tasks/subsystems (RLS allows all authenticated users)
+  // But use regular client for profiles (RLS restricts to self/board+)
+  const anonClient = await createClient();
 
-  // Get all subsystems
-  const { data: subsystems, error: subError } = await supabase
-    .from("subsystems")
-    .select("id, name")
-    .order("name");
+  // Fetch subsystems and tasks with admin client (safe — RLS allows all reads)
+  const [{ data: subsystems }, { data: tasks }] = await Promise.all([
+    adminClient.from("subsystems").select("id, name").order("name"),
+    adminClient.from("tasks").select("id, status, subsystem_id").not("subsystem_id", "is", null),
+  ]);
 
-  if (subError || !subsystems) return [];
-
-  // Get all tasks with subsystem info
-  const { data: tasks, error: taskError } = await supabase
-    .from("tasks")
-    .select("id, status, subsystem_id")
-    .not("subsystem_id", "is", null);
-
-  if (taskError) return [];
-
-  // Get active members per subsystem
-  const { data: members, error: memberError } = await supabase
+  // Fetch members with RLS-aware client (respects profiles_select_own_or_board)
+  const { data: members } = await anonClient
     .from("profiles")
     .select("id, full_name, subsystem_id")
     .eq("is_active", true)
     .not("subsystem_id", "is", null);
 
-  if (memberError) return [];
+  if (!subsystems) return [];
 
-  // Standardized subsystem order — matches DB subsystem names exactly
-  const keyOrder: SubsystemKey[] = [
+  const keyOrder: string[] = [
     "Structures",
     "Transmission",
     "Vehicle Dynamics",
@@ -56,57 +47,41 @@ export async function getSubsystemStats(): Promise<SubsystemStat[]> {
     "Management",
   ];
 
-  // Group by SubsystemKey using exact DB name matching
-  const grouped: Record<string, { total: number; completed: number }> = {};
-  for (const key of keyOrder) {
-    grouped[key] = { total: 0, completed: 0 };
+  const tasksBySubsystem = new Map<string, { total: number; done: number }>();
+  for (const task of tasks || []) {
+    const sid = task.subsystem_id;
+    if (!sid) continue;
+    const entry = tasksBySubsystem.get(sid) || { total: 0, done: 0 };
+    entry.total++;
+    if (task.status === "APPROVED") entry.done++;
+    tasksBySubsystem.set(sid, entry);
   }
 
-  for (const task of tasks) {
-    const sub = subsystems.find((s) => s.id === task.subsystem_id);
-    if (!sub) continue;
-    const key = keyOrder.find((k) => k === sub.name);
-    if (!key) continue;
-    grouped[key].total++;
-    if (task.status === "APPROVED") {
-      grouped[key].completed++;
-    }
+  const membersBySubsystem = new Map<string, { initials: string; name: string }[]>();
+  for (const member of members || []) {
+    const sid = member.subsystem_id;
+    if (!sid) continue;
+    const list = membersBySubsystem.get(sid) || [];
+    list.push({ initials: getInitials(member.full_name), name: member.full_name });
+    membersBySubsystem.set(sid, list);
   }
 
-  // Group members by SubsystemKey
-  const memberGrouped: Record<string, { initials: string; name: string }[]> = {};
-  for (const key of keyOrder) {
-    memberGrouped[key] = [];
-  }
-
-  for (const member of members) {
-    const sub = subsystems.find((s) => s.id === member.subsystem_id);
-    if (!sub) continue;
-    const key = keyOrder.find((k) => k === sub.name);
-    if (!key) continue;
-    memberGrouped[key].push({
-      initials: getInitials(member.full_name),
-      name: member.full_name,
-    });
-  }
-
-  return keyOrder
-    .map((key) => {
-      const stat = grouped[key] ?? { total: 0, completed: 0 };
-      const allMembers = memberGrouped[key] ?? [];
-      const shown = allMembers.slice(0, 4);
-      const extra = allMembers.length - shown.length;
+  return subsystems
+    .filter((sub) => keyOrder.includes(sub.name))
+    .sort((a, b) => keyOrder.indexOf(a.name) - keyOrder.indexOf(b.name))
+    .map((sub) => {
+      const stats = tasksBySubsystem.get(sub.id) || { total: 0, done: 0 };
+      const subsystemMembers = membersBySubsystem.get(sub.id) || [];
+      const total = stats.total;
+      const done = stats.done;
+      const percentage = total > 0 ? Math.round((done / total) * 100) : 0;
 
       return {
-        name: key,
-        progress:
-          stat.total > 0
-            ? Math.round((stat.completed / stat.total) * 100)
-            : 0,
-        taskCount: stat.total,
-        avatars: shown,
-        extraCount: extra,
+        name: sub.name,
+        progress: percentage,
+        taskCount: total,
+        avatars: subsystemMembers.slice(0, 3),
+        extraCount: Math.max(0, subsystemMembers.length - 3),
       };
-    })
-    .filter((s) => s.taskCount > 0 || s.avatars.length > 0);
+    });
 }

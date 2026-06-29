@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/supabase/admin";
 
 export type ProjectWithProgress = {
   id: string;
@@ -14,7 +14,7 @@ export type ProjectWithProgress = {
 };
 
 export async function getProjects(): Promise<ProjectWithProgress[]> {
-  const supabase = await createClient();
+  const supabase = adminClient;
 
   const { data, error } = await supabase
     .from("projects")

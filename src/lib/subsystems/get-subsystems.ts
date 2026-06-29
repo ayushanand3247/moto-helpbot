@@ -1,11 +1,9 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/supabase/admin";
 
 export async function getSubsystems() {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
+  const { data, error } = await adminClient
     .from("subsystems")
     .select(`
       id,

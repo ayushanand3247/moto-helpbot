@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   FolderOpen,
@@ -32,18 +33,32 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Admin",      href: "/admin",       icon: ShieldCheck, adminOnly: true },
 ];
 
-type SidebarProps = {
-  user?: {
-    name: string;
-    role: "ADMIN" | "TEAM_MANAGER" | "CAPTAIN" | "SUBSYSTEM_LEAD" | "MEMBER";
-    subsystem?: string;
-  };
+type User = {
+  name: string;
+  role: "ADMIN" | "TEAM_MANAGER" | "CAPTAIN" | "SUBSYSTEM_LEAD" | "MEMBER";
+  subsystem?: string;
 };
 
-export function Sidebar({
-  user,
-}: SidebarProps) {
+export function Sidebar() {
   const pathname = usePathname();
+  const [user, setUser] = useState<User | null>(null);
+
+  // Fetch profile client-side once after hydration
+  useEffect(() => {
+    fetch("/api/auth/profile")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.profile) {
+          setUser({
+            name: data.profile.full_name,
+            role: data.profile.role,
+            subsystem: data.profile.subsystems?.name,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const isAdmin = user?.role === "ADMIN";
 
   return (
@@ -103,10 +118,10 @@ export function Sidebar({
           <form action={logout}>
             <button
               type="submit"
-              className="ml-2 rounded-sm p-1.5 text-[#6a6a78] transition-colors hover:bg-[#0e0e12] hover:text-[#b8b8c4]"
+              className="rounded-sm p-1.5 text-[#6a6a78] transition-colors hover:bg-[#0e0e12] hover:text-[#e8241a]"
               title="Sign out"
             >
-              <LogOut className="size-3.5" strokeWidth={1.75} />
+              <LogOut className="size-4" strokeWidth={1.75} />
             </button>
           </form>
         </div>

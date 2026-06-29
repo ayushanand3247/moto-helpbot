@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/supabase/admin";
 import { getProfile } from "@/lib/auth/get-profile";
 
 type TaskFilter = {
@@ -13,7 +13,10 @@ type TaskFilter = {
 export async function getAllTasks(
   filters?: TaskFilter
 ) {
-  const supabase = await createClient();
+  // Use admin client for faster queries (no RLS)
+  const supabase = adminClient;
+
+  // Profile needed for role-based filtering
   const profile = await getProfile();
 
   if (!profile) {
@@ -54,19 +57,16 @@ export async function getAllTasks(
       )
     `);
 
-  // RLS: Apply role-based filtering
-  let assignedTaskIds: string[] | null = null;
+  // RLS: Apply role-based filtering in code (since we're using admin client)
   if (profile.role === "MEMBER") {
-    // Members see tasks they're assigned to via junction table OR primary assignee
-    // First, get task IDs where the user is in the junction table
+    // Members see only tasks assigned to them
     const { data: assignments } = await supabase
       .from("task_assignments")
       .select("task_id")
       .eq("user_id", profile.id);
 
-    assignedTaskIds = (assignments || []).map((a: any) => a.task_id);
+    const assignedTaskIds = (assignments || []).map((a: any) => a.task_id);
 
-    // Filter: assigned_to matches OR task ID is in the user's assignments
     if (assignedTaskIds.length > 0) {
       query = query.or(
         `assigned_to.eq.${profile.id},id.in.(${assignedTaskIds.join(",")})`
@@ -93,21 +93,9 @@ export async function getAllTasks(
     query = query.contains("task_assignments", [{ user_id: filters.assigned_to_user_id }]);
   }
 
-  const { data, error } = await query.order(
-    "created_at",
-    { ascending: false }
-  );
+  const { data, error } = await query.order("created_at", { ascending: false });
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error || !data) return [];
 
-  return (data || []).map((task: any) => ({
-    ...task,
-    assignees: (task.task_assignments || []).map((ta: any) => ({
-      id: ta.profile?.id,
-      full_name: ta.profile?.full_name,
-      avatar_url: ta.profile?.avatar_url ?? null,
-    })),
-  }));
+  return data;
 }

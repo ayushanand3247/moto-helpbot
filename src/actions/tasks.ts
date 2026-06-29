@@ -350,9 +350,10 @@ export async function createTask(data: {
 }
 
 // ── getTaskAssignees — for the multi-assignee selector ─────────
+// Uses regular client to respect RLS (profiles_select_own_or_board)
 
 export async function getTaskAssignees() {
-  const supabase = getMutationClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("profiles")

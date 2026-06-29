@@ -1,12 +1,13 @@
-import { requireAuth } from "@/lib/auth/require-auth";
 import { getProfile } from "@/lib/auth/get-profile";
 import { getProjects } from "@/lib/projects/get-projects";
 import { ProjectsList } from "@/components/projects/ProjectsList";
 
 export default async function ProjectsPage() {
-  await requireAuth();
-  const profile = await getProfile();
-  const projects = await getProjects();
+  // Fetch profile and projects in parallel (single client each)
+  const [profile, projects] = await Promise.all([
+    getProfile(),
+    getProjects(),
+  ]);
 
   const canCreate =
     profile?.role === "ADMIN" ||

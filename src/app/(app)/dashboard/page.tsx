@@ -25,7 +25,7 @@ export default async function DashboardPage() {
   return (
     <DashboardClient
       initialTasks={tasks}
-      subsystemStats={subsystems}
+      subsystemStats={subsystems as any}
       notifications={notifications}
       currentUser={
         profile

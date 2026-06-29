@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getMutationClient } from "@/lib/supabase/server-mutation";
+import { adminClient } from "@/lib/supabase/admin";
 import { getProfile } from "@/lib/auth/get-profile";
 import { revalidatePath } from "next/cache";
 
@@ -58,6 +58,13 @@ function formatDueDate(dateStr: string | null): string {
   }
 }
 
+// ── Use adminClient for reads (faster, no cookie parsing) ──
+// Safe for: tasks, projects, subsystems (RLS allows all authenticated users)
+// NOT safe for: profiles, notifications, activity_logs, invitations (RLS restricts)
+function getClient() {
+  return adminClient;
+}
+
 // ── getTasks — for the dashboard table ───────────────────────────
 
 type GetTasksOptions = {
@@ -68,7 +75,7 @@ type GetTasksOptions = {
 export async function getTasks(
   options: GetTasksOptions = {}
 ): Promise<DashboardTask[]> {
-  const supabase = await createClient();
+  const supabase = getClient();
 
   let query = supabase
     .from("tasks")
@@ -108,7 +115,6 @@ export async function getTasks(
     const ymd = row.deadline
       ? new Date(row.deadline).toISOString().slice(0, 10)
       : "";
-    // Get primary assignee from junction table first, then fall back to legacy
     const primaryAssignee = row.task_assignments?.[0]?.profile?.full_name
       || row.profiles?.full_name
       || "Unassigned";
@@ -131,7 +137,7 @@ export async function getTasks(
   });
 }
 
-// ── updateTaskStatus — server action with RLS ────────────────────
+// ── updateTaskStatus — server action ─────────────────────────────
 
 const UI_TO_DB_STATUS: Record<TaskStatus, string> = {
   "To Do": "TODO",
@@ -144,15 +150,13 @@ export async function updateTaskStatus(
   taskId: string,
   status: TaskStatus
 ): Promise<{ success: boolean; error?: string }> {
-  // Use service role client to bypass RLS — permission checks are done explicitly
-  const supabase = getMutationClient();
+  const supabase = getClient();
   const profile = await getProfile();
 
   if (!profile) {
     return { success: false, error: "Unauthorized" };
   }
 
-  // Check permissions: Subsystem Lead+ can update any task, MEMBER only own
   if (profile.role === "MEMBER") {
     const { data: task } = await supabase
       .from("tasks")
@@ -184,7 +188,6 @@ export async function updateTaskStatus(
     return { success: false, error: error.message };
   }
 
-  // Auto-complete project if all tasks are done
   if (dbStatus === "APPROVED") {
     const { data: updatedTask } = await supabase
       .from("tasks")
@@ -245,7 +248,7 @@ export type Deadline = {
 export async function getUpcomingDeadlines(
   limit = 5
 ): Promise<Deadline[]> {
-  const supabase = await createClient();
+  const supabase = getClient();
 
   const { data, error } = await supabase
     .from("tasks")
@@ -305,9 +308,9 @@ function timeAgo(dateStr: string): string {
 export async function getRecentActivity(
   limit = 4
 ): Promise<ActivityItem[]> {
+  // Use regular client for activity_logs — RLS restricts to board+ only
   const supabase = await createClient();
 
-  // Prefer activity_logs table
   const { data: logs, error: logError } = await supabase
     .from("activity_logs")
     .select(
@@ -317,132 +320,48 @@ export async function getRecentActivity(
       entity_type,
       actor_id,
       profiles ( full_name ),
-      tasks!activity_logs_entity_id_fkey ( subsystems ( name ) )
+      tasks ( title, subsystems ( name ) )
     `
     )
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (!logError && logs && logs.length > 0) {
-    return logs.map((log: any) => ({
-      actor: log.profiles?.full_name
-        ? getInitials(log.profiles.full_name)
-        : "—",
-      name: log.profiles?.full_name ?? "Unknown",
-      action: log.action,
-      subsystem:
-        (log.tasks as any)?.subsystems?.name ?? "—",
-      time: log.created_at ? timeAgo(log.created_at) : "—",
-    }));
-  }
+  if (logError || !logs) return [];
 
-  // Fallback: derive from task_updates
-  const { data: updates } = await supabase
-    .from("task_updates")
-    .select(
-      `
-      content,
-      update_type,
-      created_at,
-      author_id,
-      profiles ( full_name ),
-      tasks!task_updates_task_id_fkey ( title, subsystems ( name ) )
-    `
-    )
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  if (!updates) return [];
-
-  const actionMap: Record<string, string> = {
-    PROGRESS: "posted progress update",
-    COMMENT: "commented",
-    STATUS_CHANGE: "changed status",
-    APPROVAL: "approved task",
-    REJECTION: "requested changes",
-  };
-
-  return updates.map((u: any) => ({
-    actor: u.profiles?.full_name
-      ? getInitials(u.profiles.full_name)
-      : "—",
-    name: u.profiles?.full_name ?? "Unknown",
-    action: `${actionMap[u.update_type] ?? "updated"} on ${(u.tasks as any)?.title ?? "task"}`,
-    subsystem:
-      (u.tasks as any)?.subsystems?.name ?? "—",
-    time: u.created_at ? timeAgo(u.created_at) : "—",
+  return logs.map((log: any) => ({
+    actor: log.profiles?.full_name ?? "System",
+    name: log.tasks?.title ?? log.action,
+    action: log.action,
+    subsystem: log.tasks?.subsystems?.name ?? "—",
+    time: timeAgo(log.created_at),
   }));
 }
 
-// ── Dashboard stat metrics ───────────────────────────────────────
+// ── Dashboard stats ──────────────────────────────────────────────
 
-export type StatMetric = {
+export type DashboardStat = {
   label: string;
   value: string;
   sub: string;
   accent?: boolean;
 };
 
-export async function getDashboardStats(): Promise<StatMetric[]> {
-  const supabase = await createClient();
+export async function getDashboardStats(): Promise<DashboardStat[]> {
+  const supabase = getClient();
+  // Use regular client for profiles to respect RLS (members only see own profile)
+  const anonClient = await createClient();
 
-  const [
-    { count: activeProjects },
-    { count: totalTasks },
-    { count: completedTasks },
-    { count: teamMembers },
-    { count: inReviewTasks },
-  ] = await Promise.all([
-    supabase
-      .from("projects")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "ACTIVE"),
+  const [{ count: total }, { count: done }, { count: inProgress }, { count: team }] = await Promise.all([
     supabase.from("tasks").select("*", { count: "exact", head: true }),
-    supabase
-      .from("tasks")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "APPROVED"),
-    supabase
-      .from("profiles")
-      .select("*", { count: "exact", head: true })
-      .eq("is_active", true),
-    supabase
-      .from("tasks")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "IN_REVIEW"),
+    supabase.from("tasks").select("*", { count: "exact", head: true }).eq("status", "APPROVED"),
+    supabase.from("tasks").select("*", { count: "exact", head: true }).eq("status", "IN_PROGRESS"),
+    anonClient.from("profiles").select("*", { count: "exact", head: true }),
   ]);
 
-  const completionPct =
-    totalTasks && totalTasks > 0
-      ? Math.round(((completedTasks ?? 0) / totalTasks) * 100)
-      : 0;
-
   return [
-    {
-      label: "Active Projects",
-      value: String(activeProjects ?? 0),
-      sub: `${activeProjects ?? 0} in progress`,
-    },
-    {
-      label: "Total Tasks",
-      value: String(totalTasks ?? 0),
-      sub: `${(totalTasks ?? 0) - (completedTasks ?? 0)} pending`,
-    },
-    {
-      label: "Completed",
-      value: String(completedTasks ?? 0),
-      sub: `${completionPct}%`,
-      accent: true,
-    },
-    {
-      label: "Team Members",
-      value: String(teamMembers ?? 0),
-      sub: "Across subsystems",
-    },
-    {
-      label: "Upcoming Reviews",
-      value: String(inReviewTasks ?? 0),
-      sub: "This week",
-    },
+    { label: "Total Tasks",     value: `${total ?? 0}`,  sub: "All tasks" },
+    { label: "Completed",       value: `${done ?? 0}`,   sub: "Approved" },
+    { label: "In Progress",     value: `${inProgress ?? 0}`, sub: "Active" },
+    { label: "Team Members",    value: `${team ?? 0}`,   sub: "Active" },
   ];
 }
