@@ -41,7 +41,6 @@ type FormValues = {
   title: string;
   description: string;
   subsystem_id: string;
-  assigned_to: string;
   priority: string;
   deadline: string;
   estimated_hours: string;
@@ -58,12 +57,12 @@ export function CreateTaskDialog({
   subsystems,
 }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedAssigneeIds, setSelectedAssigneeIds] = useState<string[]>([]);
   const form = useForm<FormValues>({
     defaultValues: {
       title: "",
       description: "",
       subsystem_id: "",
-      assigned_to: "",
       priority: "MEDIUM",
       deadline: "",
       estimated_hours: "",
@@ -79,7 +78,7 @@ export function CreateTaskDialog({
         title: values.title,
         description: values.description || undefined,
         subsystem_id: values.subsystem_id || undefined,
-        assigned_to: values.assigned_to || undefined,
+        assigned_to_ids: selectedAssigneeIds,
         priority: (values.priority as any) || "MEDIUM",
         deadline: values.deadline || undefined,
         estimated_hours: values.estimated_hours
@@ -87,6 +86,7 @@ export function CreateTaskDialog({
           : undefined,
       });
       form.reset();
+      setSelectedAssigneeIds([]);
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to create task:", error);
@@ -99,6 +99,14 @@ export function CreateTaskDialog({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const toggleAssignee = (userId: string) => {
+    setSelectedAssigneeIds((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    );
   };
 
   return (
@@ -149,69 +157,99 @@ export function CreateTaskDialog({
               )}
             />
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control as any}
-                name="subsystem_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subsystem</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {subsystems.map((subsystem) => (
+            {/* Subsystem — dynamic from DB */}
+            <FormField
+              control={form.control as any}
+              name="subsystem_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Subsystem</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select subsystem…" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {subsystems.length === 0 ? (
+                        <SelectItem value="__none" disabled>
+                          No subsystems available.
+                        </SelectItem>
+                      ) : (
+                        subsystems.map((subsystem) => (
                           <SelectItem
                             key={subsystem.id}
                             value={subsystem.id}
                           >
-                            {subsystem.name}
+                            {subsystem.icon ? `${subsystem.icon} ` : ""}{subsystem.name}
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control as any}
-                name="assigned_to"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Assign To</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {members.map((member) => (
-                          <SelectItem
-                            key={member.id}
-                            value={member.id}
+            {/* Multi-assignee selector */}
+            <FormItem>
+              <FormLabel>Assignees</FormLabel>
+              <div className="space-y-2">
+                {/* Selected assignees as chips */}
+                {selectedAssigneeIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedAssigneeIds.map((uid) => {
+                      const u = members.find((m) => m.id === uid);
+                      if (!u) return null;
+                      return (
+                        <span
+                          key={uid}
+                          className="inline-flex items-center gap-1 rounded-sm border border-border/40 bg-[#0e0e12] px-1.5 py-0.5 text-[10px] text-[#b8b8c4]"
+                        >
+                          {u.full_name}
+                          {u.subsystem_name && (
+                            <span className="text-muted-foreground/60">
+                              · {u.subsystem_name}
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => toggleAssignee(uid)}
+                            className="ml-0.5 text-muted-foreground/60 hover:text-[#e8241a]"
                           >
-                            {member.full_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+                            ✕
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
                 )}
-              />
-            </div>
+
+                {/* Add member select */}
+                <select
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      toggleAssignee(e.target.value);
+                    }
+                  }}
+                  className="h-7 w-full rounded-sm border border-border/60 bg-input px-2 text-xs text-foreground outline-none"
+                >
+                  <option value="">+ Add member…</option>
+                  {members
+                    .filter((m) => !selectedAssigneeIds.includes(m.id))
+                    .map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.full_name}
+                        {m.subsystem_name ? ` — ${m.subsystem_name}` : ""}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </FormItem>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField

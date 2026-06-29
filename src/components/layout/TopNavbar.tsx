@@ -10,15 +10,16 @@ export function TopNavbar({
   profile,
 }: Props) {
   return (
-    <header className="border-b p-4">
-      <div className="flex items-center justify-between">
-        <MobileNav profile={profile} />
+    <header className="h-12 flex items-center justify-between px-5 border-b border-border/30 bg-background/80 backdrop-blur-sm">
+      <MobileNav profile={profile} />
 
-        <UserMenu
-          name={profile.full_name}
-          role={profile.role}
-        />
-      </div>
+      {/* Spacer for desktop — pushes user menu to right */}
+      <div className="hidden md:block" />
+
+      <UserMenu
+        name={profile.full_name}
+        role={profile.role}
+      />
     </header>
   );
 }

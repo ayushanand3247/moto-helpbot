@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   Select,
   SelectContent,
@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TaskCard } from "@/components/tasks/TaskCard";
+import { ListChecks } from "lucide-react";
 
 type Props = {
   tasks: any[];
@@ -30,15 +31,20 @@ const taskPriorities = [
 ];
 
 export function TasksList({
-  tasks,
+  tasks: initialTasks,
   subsystems,
 }: Props) {
+  const [tasks, setTasks] = useState(initialTasks);
   const [statusFilter, setStatusFilter] =
     useState<string>("");
   const [priorityFilter, setPriorityFilter] =
     useState<string>("");
   const [subsystemFilter, setSubsystemFilter] =
     useState<string>("");
+
+  const handleTaskDeleted = useCallback((taskId: string) => {
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+  }, []);
 
   const filteredTasks = tasks.filter((task) => {
     if (
@@ -66,26 +72,27 @@ export function TasksList({
   });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Tasks</h1>
-
-        <p className="text-muted-foreground">
+    <div className="space-y-7">
+      <div className="space-y-1">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          Tasks
+        </h1>
+        <p className="text-sm text-muted-foreground">
           All tasks visible to you.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="space-y-2">
-          <label className="text-sm font-semibold">
+      {/* Filter controls — precision instrument panel */}
+      <div className="flex gap-3 items-end">
+        <div className="space-y-1.5">
+          <label className="text-[0.65rem] font-semibold tracking-wider uppercase text-muted-foreground">
             Status
           </label>
-
           <Select
             value={statusFilter}
             onValueChange={setStatusFilter}
           >
-            <SelectTrigger>
+            <SelectTrigger size="sm" className="w-36">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
 
@@ -99,23 +106,22 @@ export function TasksList({
                   key={status}
                   value={status}
                 >
-                  {status}
+                  {status.replace("_", " ")}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-semibold">
+        <div className="space-y-1.5">
+          <label className="text-[0.65rem] font-semibold tracking-wider uppercase text-muted-foreground">
             Priority
           </label>
-
           <Select
             value={priorityFilter}
             onValueChange={setPriorityFilter}
           >
-            <SelectTrigger>
+            <SelectTrigger size="sm" className="w-36">
               <SelectValue placeholder="All Priority" />
             </SelectTrigger>
 
@@ -136,16 +142,15 @@ export function TasksList({
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-semibold">
+        <div className="space-y-1.5">
+          <label className="text-[0.65rem] font-semibold tracking-wider uppercase text-muted-foreground">
             Subsystem
           </label>
-
           <Select
             value={subsystemFilter}
             onValueChange={setSubsystemFilter}
           >
-            <SelectTrigger>
+            <SelectTrigger size="sm" className="w-36">
               <SelectValue placeholder="All Subsystem" />
             </SelectTrigger>
 
@@ -168,17 +173,19 @@ export function TasksList({
       </div>
 
       {filteredTasks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12">
-          <h3 className="text-lg font-semibold">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border/40 py-16">
+          <div className="size-10 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+            <ListChecks className="size-4 text-muted-foreground/70" />
+          </div>
+          <h3 className="text-sm font-medium text-foreground/80">
             No tasks found
           </h3>
-
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground/70 mt-1">
             Try adjusting your filters
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 moto-stagger">
           {filteredTasks.map((task) => (
             <TaskCard
               key={task.id}
@@ -186,9 +193,11 @@ export function TasksList({
               title={task.title}
               status={task.status}
               priority={task.priority}
-              assignee={task.profiles?.full_name}
+              assignee={task.profiles?.full_name ?? task.assigned_to_profile?.full_name}
+              assignees={task.assignees}
               deadline={task.deadline}
               subsystem={task.subsystems?.name}
+              onDelete={() => handleTaskDeleted(task.id)}
             />
           ))}
         </div>

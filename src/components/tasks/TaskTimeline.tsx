@@ -59,19 +59,19 @@ export function TaskTimeline({
     <div className="space-y-0">
       {/* Task creation entry */}
       {createdBy && createdAt && (
-        <div className="pb-8">
-          <div className="flex gap-4">
+        <div className="pb-6">
+          <div className="flex gap-3">
             <div className="flex flex-col items-center">
-              <div className="w-3 h-3 rounded-full bg-gray-800 mt-2" />
-              <div className="w-0.5 h-16 mt-2 bg-gray-200" />
+              <div className="moto-dot moto-dot-active mt-2" />
+              <div className="w-px h-12 mt-1 bg-border/30" />
             </div>
             <div className="flex-1 mt-1">
-              <p className="text-sm font-medium text-gray-900">
-                {createdBy.full_name} created task
+              <p className="text-xs font-medium text-foreground/90">
+                {createdBy.full_name} <span className="text-muted-foreground/70">created task</span>
               </p>
-              <p className="text-sm text-gray-600 mt-1">{taskTitle}</p>
-              <p className="text-xs text-gray-500 mt-2">
-                {formatTimelineDate(createdAt)} at {formatTimelineTime(createdAt)}
+              <p className="text-xs text-foreground/70 mt-0.5">{taskTitle}</p>
+              <p className="text-[0.6rem] moto-number text-muted-foreground/70 mt-1.5">
+                {formatTimelineDate(createdAt)} {formatTimelineTime(createdAt)}
               </p>
             </div>
           </div>
@@ -80,8 +80,8 @@ export function TaskTimeline({
 
       {/* Updates timeline */}
       {updates.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <p className="text-sm">No activity yet</p>
+        <div className="text-center py-8">
+          <p className="text-xs text-muted-foreground/70">No activity yet</p>
         </div>
       ) : (
         updates.map((update, index) => (
@@ -97,9 +97,9 @@ export function TaskTimeline({
               attachments={update.attachments}
             />
             {index === updates.length - 1 && (
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3 pt-3">
                 <div className="flex flex-col items-center">
-                  <div className="w-3 h-3 rounded-full bg-gray-300 mt-2" />
+                  <div className="moto-dot moto-dot-idle mt-2" />
                 </div>
               </div>
             )}

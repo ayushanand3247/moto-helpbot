@@ -5,6 +5,9 @@ import { useState } from "react";
 import { updateProfile } from "@/actions/profile/update-profile";
 
 import { ProfileWithSubsystem } from "@/types/profile";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { User, Mail, Phone, Wrench } from "lucide-react";
 
 type Props = {
   profile: ProfileWithSubsystem;
@@ -28,75 +31,71 @@ export function ProfileForm({
   return (
     <form
       action={handleSubmit}
-      className="space-y-6 max-w-2xl"
+      className="max-w-xl space-y-5"
     >
-      <div>
-        <label className="block mb-2">
+      {/* Full Name */}
+      <div className="space-y-1.5">
+        <label className="text-[0.65rem] font-semibold tracking-wider uppercase text-muted-foreground flex items-center gap-1.5">
+          <User className="size-3" />
           Full Name
         </label>
-
-        <input
+        <Input
           name="full_name"
-          defaultValue={
-            profile.full_name
-          }
-          className="w-full rounded-md border p-2"
+          defaultValue={profile.full_name}
         />
       </div>
 
-      <div>
-        <label className="block mb-2">
+      {/* Email */}
+      <div className="space-y-1.5">
+        <label className="text-[0.65rem] font-semibold tracking-wider uppercase text-muted-foreground flex items-center gap-1.5">
+          <Mail className="size-3" />
           Email
         </label>
-
-        <input
+        <Input
           disabled
           value={profile.email}
-          className="w-full rounded-md border p-2 bg-muted"
+          className="opacity-50"
         />
       </div>
 
-      <div>
-        <label className="block mb-2">
+      {/* Phone */}
+      <div className="space-y-1.5">
+        <label className="text-[0.65rem] font-semibold tracking-wider uppercase text-muted-foreground flex items-center gap-1.5">
+          <Phone className="size-3" />
           Phone
         </label>
-
-        <input
+        <Input
           name="phone"
-          defaultValue={
-            profile.phone ?? ""
-          }
-          className="w-full rounded-md border p-2"
+          defaultValue={profile.phone ?? ""}
         />
       </div>
 
-      <div>
-        <label className="block mb-2">
+      {/* Skills */}
+      <div className="space-y-1.5">
+        <label className="text-[0.65rem] font-semibold tracking-wider uppercase text-muted-foreground flex items-center gap-1.5">
+          <Wrench className="size-3" />
           Skills
         </label>
-
-        <input
+        <Input
           name="skills"
-          defaultValue={
-            profile.skills?.join(", ") ??
-            ""
-          }
-          className="w-full rounded-md border p-2"
+          defaultValue={profile.skills?.join(", ") ?? ""}
         />
+        <p className="text-[0.6rem] text-muted-foreground/70">
+          Comma-separated
+        </p>
       </div>
 
-      <button
-        type="submit"
-        className="rounded-md border px-4 py-2"
-      >
-        Save Changes
-      </button>
+      <div className="flex items-center gap-3 pt-2">
+        <Button type="submit" size="sm">
+          Save Changes
+        </Button>
 
-      {message && (
-        <p className="text-sm">
-          {message}
-        </p>
-      )}
+        {message && (
+          <p className="text-xs text-moto-green">
+            {message}
+          </p>
+        )}
+      </div>
     </form>
   );
 }

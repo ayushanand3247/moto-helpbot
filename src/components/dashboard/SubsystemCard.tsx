@@ -4,6 +4,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Cog } from "lucide-react";
 
 type Props = {
   subsystem: string;
@@ -15,11 +16,14 @@ export function SubsystemCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Subsystem</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Subsystem</CardTitle>
+          <Cog className="size-3.5 text-moto-cyan/50" />
+        </div>
       </CardHeader>
 
       <CardContent>
-        <p className="text-2xl font-semibold">
+        <p className="text-base font-medium text-foreground/90 tracking-tight">
           {subsystem}
         </p>
       </CardContent>

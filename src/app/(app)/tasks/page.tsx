@@ -10,7 +10,7 @@ export default async function TasksPage() {
   const subsystems = await getSubsystems();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 moto-animate-in">
       <TasksList tasks={tasks} subsystems={subsystems} />
     </div>
   );

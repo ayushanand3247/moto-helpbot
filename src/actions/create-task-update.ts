@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { getMutationClient } from "@/lib/supabase/server-mutation";
 
 export async function createTaskUpdate(data: {
   task_id: string;
@@ -12,7 +12,7 @@ export async function createTaskUpdate(data: {
     file_size_bytes?: number | null;
   }>;
 }) {
-  const supabase = await createClient();
+  const supabase = getMutationClient();
 
   const {
     data: { user },

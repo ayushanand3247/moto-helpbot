@@ -1,43 +1,61 @@
+import {
+  LayoutDashboard,
+  FolderKanban,
+  ListChecks,
+  Users,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
+
 export type UserRole =
   | "ADMIN"
-  | "BOARD"
+  | "TEAM_MANAGER"
+  | "CAPTAIN"
+  | "SUBSYSTEM_LEAD"
   | "MEMBER";
-  
+
 export type NavigationItem = {
   title: string;
   href: string;
-  roles: ("ADMIN" | "BOARD" | "MEMBER")[];
+  icon: React.ComponentType<{ className?: string }>;
+  roles: ("ADMIN" | "TEAM_MANAGER" | "CAPTAIN" | "SUBSYSTEM_LEAD" | "MEMBER")[];
 };
 
 export const navigation: NavigationItem[] = [
   {
     title: "Dashboard",
     href: "/dashboard",
-    roles: ["ADMIN", "BOARD", "MEMBER"],
+    icon: LayoutDashboard,
+    roles: ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD", "MEMBER"],
   },
   {
     title: "Projects",
     href: "/projects",
-    roles: ["ADMIN", "BOARD", "MEMBER"],
+    icon: FolderKanban,
+    roles: ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD", "MEMBER"],
   },
   {
     title: "Tasks",
     href: "/tasks",
-    roles: ["ADMIN", "BOARD", "MEMBER"],
+    icon: ListChecks,
+    roles: ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD", "MEMBER"],
   },
   {
     title: "Team",
     href: "/team",
-    roles: ["ADMIN", "BOARD", "MEMBER"],
+    icon: Users,
+    roles: ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD", "MEMBER"],
   },
   {
     title: "Settings",
     href: "/settings",
-    roles: ["ADMIN", "BOARD", "MEMBER"],
+    icon: Settings,
+    roles: ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD", "MEMBER"],
   },
   {
     title: "Admin",
     href: "/admin",
+    icon: ShieldCheck,
     roles: ["ADMIN"],
   },
 ];

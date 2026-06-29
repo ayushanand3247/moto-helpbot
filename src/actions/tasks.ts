@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getMutationClient } from "@/lib/supabase/server-mutation";
 import { getProfile } from "@/lib/auth/get-profile";
 import { canTransition, requiresComment } from "@/lib/tasks/status-machine";
 import { Database } from "@/lib/database/database.types";
@@ -23,7 +24,7 @@ interface SubmitUpdateInput {
 }
 
 export async function submitUpdate(input: SubmitUpdateInput) {
-  const supabase = await createClient();
+  const supabase = getMutationClient();
   const profile = await getProfile();
 
   if (!profile) {
@@ -56,9 +57,18 @@ export async function submitUpdate(input: SubmitUpdateInput) {
     }
   }
 
-  // For MEMBER working on task
+  // For MEMBER working on task — check junction table too
   if (profile.role === "MEMBER" && task.assigned_to !== profile.id) {
-    throw new Error("You can only update tasks assigned to you");
+    // Also check if user is in task_assignments
+    const { data: assignments } = await supabase
+      .from("task_assignments")
+      .select("user_id")
+      .eq("task_id", input.taskId)
+      .eq("user_id", profile.id);
+
+    if (!assignments || assignments.length === 0) {
+      throw new Error("You can only update tasks assigned to you");
+    }
   }
 
   // Create task update
@@ -91,6 +101,41 @@ export async function submitUpdate(input: SubmitUpdateInput) {
 
     if (statusError) {
       throw new Error(statusError.message);
+    }
+
+    // Auto-complete project if all tasks are now done
+    if (input.newStatus === "APPROVED") {
+      const { data: milestone } = await supabase
+        .from("milestones")
+        .select("project_id")
+        .eq("id", task.milestone_id)
+        .single();
+
+      if (milestone?.project_id) {
+        const { data: projectMilestones } = await supabase
+          .from("milestones")
+          .select("id")
+          .eq("project_id", milestone.project_id);
+
+        const milestoneIds = (projectMilestones || []).map((m: any) => m.id);
+
+        if (milestoneIds.length > 0) {
+          const { data: projectTasks } = await supabase
+            .from("tasks")
+            .select("status")
+            .in("milestone_id", milestoneIds);
+
+          const allDone = projectTasks && projectTasks.length > 0 &&
+            projectTasks.every((t: any) => t.status === "APPROVED");
+
+          if (allDone) {
+            await supabase
+              .from("projects")
+              .update({ status: "COMPLETED" })
+              .eq("id", milestone.project_id);
+          }
+        }
+      }
     }
   }
 
@@ -140,17 +185,33 @@ export async function submitUpdate(input: SubmitUpdateInput) {
   // Create notifications
   const notificationRecipients: string[] = [];
 
+  // Get all assignees from junction table + primary assignee
+  const allAssigneeIds = new Set<string>();
+  if (task.assigned_to) allAssigneeIds.add(task.assigned_to);
+
+  const { data: junctionAssignments } = await supabase
+    .from("task_assignments")
+    .select("user_id")
+    .eq("task_id", input.taskId);
+
+  if (junctionAssignments) {
+    junctionAssignments.forEach((a: any) => allAssigneeIds.add(a.user_id));
+  }
+
   if (input.updateType === "PROGRESS") {
-    // Notify task creator and board members
+    // Notify task creator and all assignees
     if (task.created_by && task.created_by !== profile.id) {
       notificationRecipients.push(task.created_by);
     }
+    allAssigneeIds.forEach((id) => {
+      if (id !== profile.id) notificationRecipients.push(id);
+    });
   } else if (input.updateType === "STATUS_CHANGE" || input.newStatus === "IN_REVIEW") {
-    // Notify board members when task submitted for review
+    // Notify leads + all assignees when task submitted for review
     const { data: boardMembers } = await supabase
       .from("profiles")
       .select("id")
-      .in("role", ["BOARD", "ADMIN"]);
+      .in("role", ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD"]);
 
     if (boardMembers) {
       notificationRecipients.push(
@@ -159,16 +220,19 @@ export async function submitUpdate(input: SubmitUpdateInput) {
           .filter((id) => id !== profile.id)
       );
     }
+    allAssigneeIds.forEach((id) => {
+      if (id !== profile.id) notificationRecipients.push(id);
+    });
   } else if (input.updateType === "APPROVAL") {
-    // Notify assigned member
-    if (task.assigned_to && task.assigned_to !== profile.id) {
-      notificationRecipients.push(task.assigned_to);
-    }
+    // Notify all assignees
+    allAssigneeIds.forEach((id) => {
+      if (id !== profile.id) notificationRecipients.push(id);
+    });
   } else if (input.updateType === "REJECTION") {
-    // Notify assigned member
-    if (task.assigned_to && task.assigned_to !== profile.id) {
-      notificationRecipients.push(task.assigned_to);
-    }
+    // Notify all assignees
+    allAssigneeIds.forEach((id) => {
+      if (id !== profile.id) notificationRecipients.push(id);
+    });
   }
 
   // Insert unique notifications
@@ -190,8 +254,119 @@ export async function submitUpdate(input: SubmitUpdateInput) {
   }
 
   revalidatePath(`/tasks/${input.taskId}`);
+  revalidatePath("/projects");
+  revalidatePath("/dashboard");
 
   return taskUpdate;
+}
+
+// ── createTask — new task from dashboard modal ────────────────
+// Supports both legacy (subsystem name) and new (subsystem_id + assigned_to_ids) params
+
+export async function createTask(data: {
+  title: string;
+  description?: string;
+  subsystem?: string;
+  subsystem_id?: string;
+  assignee_id?: string;
+  assigned_to_ids?: string[];
+  priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  due_date?: string;
+  status: "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "APPROVED" | "BLOCKED";
+}) {
+  const supabase = getMutationClient();
+  const profile = await getProfile();
+
+  if (!profile) throw new Error("Unauthorized");
+
+  // Resolve subsystem: prefer subsystem_id, fall back to name lookup
+  let resolvedSubsystemId = data.subsystem_id || null;
+  if (!resolvedSubsystemId && data.subsystem) {
+    const { data: sub } = await supabase
+      .from("subsystems")
+      .select("id")
+      .eq("name", data.subsystem)
+      .maybeSingle();
+    resolvedSubsystemId = sub?.id || null;
+  }
+
+  // Determine primary assignee (first in array or legacy single)
+  const primaryAssignee = data.assigned_to_ids?.[0] || data.assignee_id || null;
+
+  const { data: task, error } = await supabase.from("tasks").insert({
+    title: data.title,
+    description: data.description || null,
+    subsystem_id: resolvedSubsystemId,
+    assigned_to: primaryAssignee,
+    priority: data.priority,
+    deadline: data.due_date || null,
+    status: data.status,
+    created_by: profile.id,
+    milestone_id: null,
+  }).select().single();
+
+  if (error) throw error;
+
+  // Insert into task_assignments junction table
+  if (data.assigned_to_ids && data.assigned_to_ids.length > 0) {
+    const assignments = data.assigned_to_ids.map((userId) => ({
+      task_id: task.id,
+      user_id: userId,
+      assigned_by: profile.id,
+    }));
+
+    await supabase.from("task_assignments").insert(assignments);
+
+    // Notify all assigned users (except creator)
+    const notificationRecipients = data.assigned_to_ids.filter(
+      (id) => id !== profile.id
+    );
+
+    if (notificationRecipients.length > 0) {
+      const notifications = notificationRecipients.map((recipientId) => ({
+        recipient_id: recipientId,
+        title: "New Task Assigned",
+        body: data.title,
+        type: "TASK_ASSIGNED",
+        related_task_id: task.id,
+      }));
+
+      await supabase.from("notifications").insert(notifications);
+    }
+  } else if (data.assignee_id && data.assignee_id !== profile.id) {
+    // Legacy single-assignee notification
+    await supabase.from("notifications").insert({
+      recipient_id: data.assignee_id,
+      title: "New Task Assigned",
+      body: data.title,
+      type: "TASK_ASSIGNED",
+      related_task_id: task.id,
+    });
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/projects");
+  revalidatePath("/tasks");
+}
+
+// ── getTaskAssignees — for the multi-assignee selector ─────────
+
+export async function getTaskAssignees() {
+  const supabase = getMutationClient();
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, full_name, avatar_url, subsystem_id, subsystems ( name )")
+    .eq("is_active", true)
+    .order("full_name");
+
+  if (error) return [];
+  return (data || []).map((p: any) => ({
+    id: p.id,
+    full_name: p.full_name,
+    avatar_url: p.avatar_url ?? null,
+    subsystem_name: p.subsystems?.name ?? null,
+  }));
 }
 
 function getNotificationTitle(

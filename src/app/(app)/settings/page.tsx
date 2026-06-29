@@ -6,13 +6,12 @@ export default async function SettingsPage() {
   const profile = await getProfile();
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">
+    <div className="space-y-8 moto-animate-in">
+      <div className="space-y-1">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Settings
         </h1>
-
-        <p className="text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Manage your profile.
         </p>
       </div>

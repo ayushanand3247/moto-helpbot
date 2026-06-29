@@ -26,20 +26,24 @@ export default async function TaskDetailPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 moto-animate-in">
       {/* Header */}
-      <div className="border-b border-gray-200 pb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{task.title}</h1>
+      <div className="border-b border-border/30 pb-4">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground mb-1">
+          {task.title}
+        </h1>
         {task.description && (
-          <p className="text-gray-600">{task.description}</p>
+          <p className="text-sm text-muted-foreground/80">
+            {task.description}
+          </p>
         )}
       </div>
 
       {/* Two-column layout: Timeline (60%) + Metadata (40%) */}
-      <div className="grid grid-cols-3 gap-8">
-        {/* Timeline - 2/3 width */}
-        <div className="col-span-2">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Timeline — 2/3 width */}
+        <div className="lg:col-span-2">
+          <h2 className="text-xs font-semibold tracking-wider uppercase text-muted-foreground mb-4">
             Activity Timeline
           </h2>
           <TaskTimeline
@@ -50,9 +54,9 @@ export default async function TaskDetailPage({
           />
         </div>
 
-        {/* Metadata Panel - 1/3 width */}
-        <div className="col-span-1">
-          <div className="sticky top-4 space-y-6">
+        {/* Metadata Panel — 1/3 width */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-4 space-y-4">
             <MetadataPanel task={task} />
 
             {/* Update Form */}

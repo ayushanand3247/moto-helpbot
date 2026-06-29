@@ -1,43 +1,45 @@
+import DashboardClient from "@/components/DashboardClient";
+import { getSubsystemStats } from "@/lib/actions/subsystems";
+import {
+  getTasks,
+  getUpcomingDeadlines,
+  getRecentActivity,
+  getDashboardStats,
+} from "@/lib/actions/dashboard";
+import { getRecentNotifications } from "@/lib/actions/notifications";
 import { getProfile } from "@/lib/auth/get-profile";
-
-import { UserCard } from "@/components/dashboard/UserCard";
-import { RoleCard } from "@/components/dashboard/RoleCard";
-import { SubsystemCard } from "@/components/dashboard/SubsystemCard";
-import { TaskCountCard } from "@/components/dashboard/TaskCountCard";
 
 export default async function DashboardPage() {
   const profile = await getProfile();
 
+  const [stats, subsystems, tasks, deadlines, activity, notifications] =
+    await Promise.all([
+      getDashboardStats(),
+      getSubsystemStats(),
+      getTasks({ limit: 50 }),
+      getUpcomingDeadlines(5),
+      getRecentActivity(4),
+      getRecentNotifications(10),
+    ]);
+
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">
-          Dashboard
-        </h1>
-
-        <p className="text-muted-foreground">
-          Welcome back to MotoManipal.
-        </p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <UserCard
-          name={profile.full_name ?? "Unknown"}
-        />
-
-        <RoleCard
-          role={profile.role}
-        />
-
-        <SubsystemCard
-          subsystem={
-            profile.subsystems?.name ??
-            "Unassigned"
-          }
-        />
-
-        <TaskCountCard count={0} />
-      </div>
-    </div>
+    <DashboardClient
+      initialTasks={tasks}
+      subsystemStats={subsystems}
+      notifications={notifications}
+      currentUser={
+        profile
+          ? {
+              id: profile.id,
+              name: profile.full_name,
+              role: profile.role,
+              subsystem: profile.subsystems?.name,
+            }
+          : null
+      }
+      stats={stats}
+      deadlines={deadlines}
+      activity={activity}
+    />
   );
 }

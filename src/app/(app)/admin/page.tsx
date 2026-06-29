@@ -1,76 +1,28 @@
 import { requireAdmin } from "@/lib/auth/require-admin";
-
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { getAdminUsers, getAdminProjects, getAdminSubsystems, getAdminInvitations, getAnalytics, getAuditLogs } from "@/lib/admin/get-admin-data";
+import { AdminClient } from "@/components/admin/AdminClient";
 
 export default async function AdminPage() {
   await requireAdmin();
 
+  const [users, projects, subsystems, invitations, analytics, auditLogs] =
+    await Promise.all([
+      getAdminUsers(),
+      getAdminProjects(),
+      getAdminSubsystems(),
+      getAdminInvitations(),
+      getAnalytics(),
+      getAuditLogs(100),
+    ]);
+
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">
-          Admin
-        </h1>
-
-        <p className="text-muted-foreground">
-          Administrative tools and system management.
-        </p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              User Management
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent>
-            Manage team members and roles.
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Invitations
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent>
-            Create and track invitations.
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Projects
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent>
-            Manage project lifecycle.
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              System
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent>
-            System administration tools.
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <AdminClient
+      users={users}
+      projects={projects}
+      subsystems={subsystems}
+      invitations={invitations}
+      analytics={analytics}
+      auditLogs={auditLogs}
+    />
   );
 }

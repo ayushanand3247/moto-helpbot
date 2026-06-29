@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth/get-profile";
-import { notFound } from "next/navigation";
 
 export async function getTask(id: string) {
   const supabase = await createClient();
@@ -41,6 +40,19 @@ export async function getTask(id: string) {
         color,
         icon
       ),
+      task_assignments (
+        user_id,
+        assigned_at,
+        assigned_by,
+        profile:user_id (
+          id,
+          full_name,
+          avatar_url,
+          email,
+          subsystem_id,
+          profile_subsystem:subsystem_id ( name )
+        )
+      ),
       task_updates (
         *,
         author:author_id (
@@ -70,9 +82,15 @@ export async function getTask(id: string) {
     return null;
   }
 
-  // Authorization check
-  if (profile.role === "MEMBER" && task.assigned_to !== profile.id) {
-    return null;
+  // Authorization check — allow if assigned via junction table OR primary assignee
+  if (profile.role === "MEMBER") {
+    const isPrimaryAssignee = task.assigned_to === profile.id;
+    const isJunctionAssignee = (task.task_assignments || []).some(
+      (ta: any) => ta.user_id === profile.id
+    );
+    if (!isPrimaryAssignee && !isJunctionAssignee) {
+      return null;
+    }
   }
 
   return task;

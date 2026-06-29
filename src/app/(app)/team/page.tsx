@@ -7,13 +7,12 @@ export default async function TeamPage() {
     await getTeamMembers();
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">
+    <div className="space-y-8 moto-animate-in">
+      <div className="space-y-1">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Team Directory
         </h1>
-
-        <p className="text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           MotoManipal team members.
         </p>
       </div>

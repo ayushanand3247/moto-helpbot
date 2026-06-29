@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { getProfile } from "@/lib/auth/get-profile";
 import { getProject } from "@/lib/projects/get-project";
@@ -16,7 +17,14 @@ export default async function ProjectPage({
   const profile = await getProfile();
   const { id } = await params;
 
-  const project = await getProject(id);
+  // Fetch project — if not found, return 404
+  let project;
+  try {
+    project = await getProject(id);
+  } catch {
+    notFound();
+  }
+
   const milestones = await getMilestones(id);
   const members = await getActiveMembers();
   const subsystems = await getSubsystems();
@@ -31,10 +39,12 @@ export default async function ProjectPage({
 
   const canCreate =
     profile?.role === "ADMIN" ||
-    profile?.role === "BOARD";
+    profile?.role === "TEAM_MANAGER" ||
+    profile?.role === "CAPTAIN" ||
+    profile?.role === "SUBSYSTEM_LEAD";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 moto-animate-in">
       <ProjectDetail
         project={project}
         milestones={milestonesWithTasks}
@@ -45,4 +55,3 @@ export default async function ProjectPage({
     </div>
   );
 }
-

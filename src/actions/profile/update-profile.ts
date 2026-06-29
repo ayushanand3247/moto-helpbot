@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-import { createClient } from "@/lib/supabase/server";
+import { getMutationClient } from "@/lib/supabase/server-mutation";
 
 const updateProfileSchema = z.object({
   full_name: z.string().min(2),
@@ -26,7 +26,7 @@ export async function updateProfile(
     };
   }
 
-  const supabase = await createClient();
+  const supabase = getMutationClient();
 
   const {
     data: { user },

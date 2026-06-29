@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
-import { getUser } from "@/lib/auth/get-user";
+import { getMutationClient } from "@/lib/supabase/server-mutation";
+import { getProfile } from "@/lib/auth/get-profile";
 
 type CreateProjectInput = {
   title: string;
@@ -15,17 +15,22 @@ type CreateProjectInput = {
 export async function createProject(
   input: CreateProjectInput
 ) {
-  const user = await getUser();
+  const profile = await getProfile();
 
-  if (!user) {
+  if (!profile) {
     throw new Error("Unauthorized");
+  }
+
+  // Only board+ can create projects
+  if (!["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD"].includes(profile.role)) {
+    throw new Error("Insufficient permissions to create projects");
   }
 
   if (!input.title || input.title.trim().length === 0) {
     throw new Error("Title is required");
   }
 
-  const supabase = await createClient();
+  const supabase = getMutationClient();
 
   const { data, error } = await supabase
     .from("projects")
@@ -35,7 +40,7 @@ export async function createProject(
       status: input.status || "PLANNING",
       start_date: input.start_date || null,
       target_date: input.target_date || null,
-      created_by: user.id,
+      created_by: profile.id,
     })
     .select()
     .single();

@@ -2,11 +2,10 @@ import { format } from "date-fns";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Target } from "lucide-react";
 
 type Props = {
   id: string;
@@ -16,10 +15,10 @@ type Props = {
   due_date: string | null;
 };
 
-const statusColors: Record<string, string> = {
-  NOT_STARTED: "bg-gray-100 text-gray-800",
-  IN_PROGRESS: "bg-blue-100 text-blue-800",
-  COMPLETED: "bg-green-100 text-green-800",
+const statusVariant: Record<string, "outline" | "default" | "success"> = {
+  NOT_STARTED: "outline",
+  IN_PROGRESS: "default",
+  COMPLETED: "success",
 };
 
 export function MilestoneCard({
@@ -30,37 +29,37 @@ export function MilestoneCard({
   due_date,
 }: Props) {
   return (
-    <Card>
+    <Card size="sm">
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1">
-            <CardTitle className="line-clamp-1">
-              {title}
-            </CardTitle>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <Target className="size-3 text-moto-cyan/40" />
+              <span className="text-xs font-medium text-foreground tracking-tight line-clamp-1">
+                {title}
+              </span>
+            </div>
+            {description && (
+              <p className="text-[0.7rem] text-muted-foreground/70 line-clamp-1 mt-0.5">
+                {description}
+              </p>
+            )}
           </div>
           {status && (
-            <Badge
-              className={statusColors[status]}
-            >
+            <Badge variant={statusVariant[status] ?? "outline"}>
               {status.replace("_", " ")}
             </Badge>
           )}
         </div>
-        <CardDescription
-          className="line-clamp-2"
-        >
-          {description || "No description"}
-        </CardDescription>
       </CardHeader>
 
       <CardContent>
         {due_date && (
           <p className="text-sm text-muted-foreground">
-            Due:{" "}
-            {format(
-              new Date(due_date),
-              "MMM dd, yyyy"
-            )}
+            <span>Due:</span>{" "}
+            <span className="moto-number">
+              {format(new Date(due_date), "MMM dd, yyyy")}
+            </span>
           </p>
         )}
       </CardContent>

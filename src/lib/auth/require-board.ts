@@ -10,7 +10,9 @@ export async function requireBoard() {
 
   const allowed =
     profile.role === "ADMIN" ||
-    profile.role === "BOARD";
+    profile.role === "TEAM_MANAGER" ||
+    profile.role === "CAPTAIN" ||
+    profile.role === "SUBSYSTEM_LEAD";
 
   if (!allowed) {
     redirect("/dashboard");

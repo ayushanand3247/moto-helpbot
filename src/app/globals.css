@@ -39,92 +39,251 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) * 1.25);
+  --radius-2xl: calc(var(--radius) * 1.5);
+  --radius-3xl: calc(var(--radius) * 2);
+  --radius-4xl: calc(var(--radius) * 2.5);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* ── Depth stack ──────────────────────────────────────────
+     Pit floor → instrument panel → raised gauge → active.   */
+  --background: #050507;
+  --card: #0a0a0d;
+  --popover: #111115;
+  --accent: #16161b;
+
+  --card-foreground: #d0d0d8;
+  --popover-foreground: #d0d0d8;
+  --accent-foreground: #e2e2ea;
+
+  --foreground: #d0d0d8;
+
+  /* ── Velocity red — used sparingly ───────────────────────*/
+  --primary: #e8241a;
+  --primary-foreground: #ffffff;
+
+  --secondary: #14141a;
+  --secondary-foreground: #b8b8c4;
+
+  --muted: #0e0e12;
+  --muted-foreground: #8a8a98;
+
+  --destructive: #e8241a;
+
+  --border: #222228;
+  --input: #18181e;
+  --ring: #e8241a;
+
+  /* ── Tight radius — engineering tools have square edges ──*/
+  --radius: 0.25rem;
+
+  /* ── Telemetry palette ───────────────────────────────────*/
+  --chart-1: #e8241a;
+  --chart-2: #ff6b2b;
+  --chart-3: #d0d0d8;
+  --chart-4: #8a8a98;
+  --chart-5: #3a3a44;
+
+  /* ── Sidebar ─────────────────────────────────────────────*/
+  --sidebar: #050507;
+  --sidebar-foreground: #8a8a98;
+  --sidebar-primary: #e8241a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #0e0e12;
+  --sidebar-accent-foreground: #d0d0d8;
+  --sidebar-border: #111115;
+  --sidebar-ring: #e8241a;
+
+  /* ── Subsystem channel colours ───────────────────────────
+     Each subsystem is a distinct telemetry channel.         */
+  --sub-structures-bg: #0d1a2a;
+  --sub-structures-fg: #60a5fa;
+  --sub-powertrain-bg: #1e0f04;
+  --sub-powertrain-fg: #f97316;
+  --sub-electronics-bg: #0d1a08;
+  --sub-electronics-fg: #84cc16;
+  --sub-ml-bg: #170d28;
+  --sub-ml-fg: #a78bfa;
+  --sub-aero-bg: #041414;
+  --sub-aero-fg: #2dd4bf;
+  --sub-management-bg: #1a0d04;
+  --sub-management-fg: #fb923c;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #050507;
+  --foreground: #d0d0d8;
+  --card: #0a0a0d;
+  --card-foreground: #d0d0d8;
+  --popover: #111115;
+  --popover-foreground: #d0d0d8;
+  --primary: #e8241a;
+  --primary-foreground: #ffffff;
+  --secondary: #14141a;
+  --secondary-foreground: #b8b8c4;
+  --muted: #0e0e12;
+  --muted-foreground: #8a8a98;
+  --accent: #16161b;
+  --accent-foreground: #e2e2ea;
+  --destructive: #e8241a;
+  --border: #222228;
+  --input: #18181e;
+  --ring: #e8241a;
+  --chart-1: #e8241a;
+  --chart-2: #ff6b2b;
+  --chart-3: #d0d0d8;
+  --chart-4: #8a8a98;
+  --chart-5: #3a3a44;
+  --sidebar: #050507;
+  --sidebar-foreground: #8a8a98;
+  --sidebar-primary: #e8241a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #0e0e12;
+  --sidebar-accent-foreground: #d0d0d8;
+  --sidebar-border: #111115;
+  --sidebar-ring: #e8241a;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply min-h-screen bg-background text-foreground antialiased;
+    font-feature-settings: "tnum", "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 13px;
+    line-height: 1.5;
   }
+
   html {
     @apply font-sans;
+    color-scheme: dark;
   }
+
+  ::selection {
+    background: rgba(232, 36, 26, 0.22);
+    color: #e2e2ea;
+  }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #3a3a44; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: #5a5a68; }
+
+  code, kbd, samp, .font-mono {
+    font-feature-settings: "tnum", "zero", "salt";
+    letter-spacing: 0.02em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    text-wrap: balance;
+    color: #e2e2ea;
+  }
+
+  p {
+    text-wrap: pretty;
+    color: var(--foreground);
+  }
+}
+
+/* ── Scan shimmer for loading states ─────────────────────────*/
+@keyframes scan {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Telemetry blink — live/active indicators ────────────────*/
+@keyframes telemetry-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+/* ── Arc progress animation ──────────────────────────────────*/
+@keyframes arc-fill {
+  from { --arc-pct: 0%; }
+}
+
+@layer utilities {
+  /* ── Engineering mono label ──────────────────────────────*/
+  .text-mono-label {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-feature-settings: "tnum";
+    color: var(--muted-foreground);
+  }
+
+  /* ── Data readout ────────────────────────────────────────*/
+  .text-data-readout {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum", "zero";
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Active channel stripe ───────────────────────────────
+     2px left-edge red stripe. The signature element.        */
+  .channel-active {
+    box-shadow: inset 2px 0 0 var(--primary);
+  }
+
+  /* ── Section eyebrow: // prefix in velocity red ─────────
+     Used sparingly (3–4 times per page max).                */
+  .section-eyebrow::before {
+    content: "// ";
+    color: #e8241a;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+
+  .divider       { border-top: 1px solid #1c1c22; }
+  .section-gap   { @apply space-y-5; }
+
+  .indicator-live { animation: telemetry-blink 1.4s ease-in-out infinite; }
+
+  .scan-shimmer {
+    background: linear-gradient(
+      90deg,
+      #18181e 0%, #18181e 30%, #222228 50%, #18181e 70%, #18181e 100%
+    );
+    background-size: 200% 100%;
+    animation: scan 1.6s ease-in-out infinite;
+  }
+
+  /* ── Subsystem arc progress ring ────────────────────────
+     Usage: style="--arc-pct: 72%" on the element.
+     The ring is drawn with conic-gradient — no SVG needed.  */
+  .arc-ring {
+    background: conic-gradient(
+      var(--arc-color, #e8241a) 0% var(--arc-pct, 0%),
+      #1e1e24 var(--arc-pct, 0%) 100%
+    );
+    border-radius: 50%;
+  }
+
+  .arc-ring-inner {
+    background: #0a0a0d;
+    border-radius: 50%;
+  }
+
+  /* ── Subsystem pill colours ──────────────────────────────*/
+  .sub-pill-structures  { background: var(--sub-structures-bg);  color: var(--sub-structures-fg);  border-color: color-mix(in srgb, var(--sub-structures-fg) 20%, transparent);  }
+  .sub-pill-powertrain  { background: var(--sub-powertrain-bg);  color: var(--sub-powertrain-fg);  border-color: color-mix(in srgb, var(--sub-powertrain-fg) 20%, transparent);  }
+  .sub-pill-electronics { background: var(--sub-electronics-bg); color: var(--sub-electronics-fg); border-color: color-mix(in srgb, var(--sub-electronics-fg) 20%, transparent); }
+  .sub-pill-ml          { background: var(--sub-ml-bg);          color: var(--sub-ml-fg);          border-color: color-mix(in srgb, var(--sub-ml-fg) 20%, transparent);          }
+  .sub-pill-aero        { background: var(--sub-aero-bg);        color: var(--sub-aero-fg);        border-color: color-mix(in srgb, var(--sub-aero-fg) 20%, transparent);        }
+  .sub-pill-management  { background: var(--sub-management-bg);  color: var(--sub-management-fg);  border-color: color-mix(in srgb, var(--sub-management-fg) 20%, transparent);  }
 }

@@ -10,10 +10,12 @@ export default async function ProjectsPage() {
 
   const canCreate =
     profile?.role === "ADMIN" ||
-    profile?.role === "BOARD";
+    profile?.role === "TEAM_MANAGER" ||
+    profile?.role === "CAPTAIN" ||
+    profile?.role === "SUBSYSTEM_LEAD";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 moto-animate-in">
       <ProjectsList
         projects={projects || []}
         canCreate={canCreate}

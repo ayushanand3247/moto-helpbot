@@ -19,9 +19,15 @@ export async function getTasks(milestoneId: string) {
         id,
         name
       ),
-      profiles:assigned_to (
-        id,
-        full_name
+      task_assignments (
+        user_id,
+        profile:user_id (
+          id,
+          full_name,
+          avatar_url,
+          subsystem_id,
+          profile_subsystem:subsystem_id ( name )
+        )
       )
     `)
     .eq("milestone_id", milestoneId)
@@ -31,5 +37,13 @@ export async function getTasks(milestoneId: string) {
     throw new Error(error.message);
   }
 
-  return data || [];
+  return (data || []).map((task: any) => ({
+    ...task,
+    assignees: (task.task_assignments || []).map((ta: any) => ({
+      id: ta.profile?.id,
+      full_name: ta.profile?.full_name,
+      avatar_url: ta.profile?.avatar_url ?? null,
+      subsystem_name: ta.profile?.profile_subsystem?.name ?? null,
+    })),
+  }));
 }
