@@ -631,7 +631,6 @@ export type Database = {
         | "TRANSMISSION"
         | "VEHICLE_DYNAMICS"
         | "ELECTRONICS"
-        | "ELECTRICALS"
         | "MANAGEMENT"
         | "ML"
       task_priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
@@ -787,7 +786,6 @@ export const Constants = {
         "TRANSMISSION",
         "VEHICLE_DYNAMICS",
         "ELECTRONICS",
-        "ELECTRICALS",
         "MANAGEMENT",
         "ML",
       ],
