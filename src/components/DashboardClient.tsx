@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Bell, Search, Plus, SlidersHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -125,6 +126,8 @@ export default function DashboardClient({
   const hasFilters = filterSubs.length > 0 || filterPrio.length > 0 || filterStatus.length > 0;
 
   // ── Handlers ──────────────────────────────────────────────
+  const router = useRouter();
+
   const handleComplete = useCallback(
     async (id: string) => {
       setStatusError(null);
@@ -137,9 +140,11 @@ export default function DashboardClient({
           return next;
         });
         setStatusError(res.error ?? "Failed to update task");
+      } else {
+        router.refresh();
       }
     },
-    []
+    [router]
   );
 
   const handleStatusChange = useCallback(
@@ -154,9 +159,11 @@ export default function DashboardClient({
           return next;
         });
         setStatusError(res.error ?? "Failed to update task");
+      } else {
+        router.refresh();
       }
     },
-    []
+    [router]
   );
 
   const openModal = async () => {
@@ -201,6 +208,7 @@ export default function DashboardClient({
         due_date: "",
         status: "TODO",
       });
+      router.refresh();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Failed to create task.");
     } finally {

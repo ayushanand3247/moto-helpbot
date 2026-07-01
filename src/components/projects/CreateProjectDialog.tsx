@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { createProject } from "@/actions/projects/create-project";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ export function CreateProjectDialog({
   open,
   onOpenChange,
 }: Props) {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<FormValues>({
     defaultValues: {
@@ -75,6 +77,7 @@ export function CreateProjectDialog({
       });
       form.reset();
       onOpenChange(false);
+      router.refresh();
     } catch (error) {
       console.error("Failed to create project:", error);
       form.setError("title", {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { createMilestone } from "@/actions/milestones/create-milestone";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export function CreateMilestoneDialog({
   open,
   onOpenChange,
 }: Props) {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<FormValues>({
     defaultValues: {
@@ -58,6 +60,7 @@ export function CreateMilestoneDialog({
       });
       form.reset();
       onOpenChange(false);
+      router.refresh();
     } catch (error) {
       console.error("Failed to create milestone:", error);
       form.setError("title", {

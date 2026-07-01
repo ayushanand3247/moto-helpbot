@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Search, X, Pencil } from "lucide-react";
@@ -44,6 +45,7 @@ const roleDisplay: Record<string, string> = {
 };
 
 export function UserManagement({ users, subsystems }: Props) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("");
   const [filterSubs, setFilterSubs] = useState("");
@@ -67,6 +69,7 @@ export function UserManagement({ users, subsystems }: Props) {
   const handleRemove = async (userId: string) => {
     await removeUser(userId);
     setConfirmRemove(null);
+    router.refresh();
   };
 
   return (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -18,6 +19,7 @@ const statusVariant: Record<string, "default" | "success" | "secondary" | "outli
 };
 
 export function ProjectManagement({ projects }: Props) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -47,6 +49,7 @@ export function ProjectManagement({ projects }: Props) {
   const saveEdit = async (id: string) => {
     await updateProject(id, { title: editTitle, target_date: editDeadline || null });
     setEditing(null);
+    router.refresh();
   };
 
   const handleDelete = (p: any) => {
@@ -110,10 +113,10 @@ export function ProjectManagement({ projects }: Props) {
                       <button onClick={() => startEdit(p)} className="rounded-sm p-1 text-muted-foreground/70 hover:text-foreground" title="Edit"><User className="size-3" /></button>
                     )}
                     {p.status !== "ARCHIVED" && p.status !== "COMPLETED" && (
-                      <button onClick={() => archiveProject(p.id)} className="rounded-sm p-1 text-muted-foreground/70 hover:text-[#ff6b2b]" title="Archive"><Archive className="size-3" /></button>
+                      <button onClick={async () => { await archiveProject(p.id); router.refresh(); }} className="rounded-sm p-1 text-muted-foreground/70 hover:text-[#ff6b2b]" title="Archive"><Archive className="size-3" /></button>
                     )}
                     {p.status === "ARCHIVED" && (
-                      <button onClick={() => reopenProject(p.id)} className="rounded-sm p-1 text-muted-foreground/70 hover:text-[#22c55e]" title="Reopen"><RotateCcw className="size-3" /></button>
+                      <button onClick={async () => { await reopenProject(p.id); router.refresh(); }} className="rounded-sm p-1 text-muted-foreground/70 hover:text-[#22c55e]" title="Reopen"><RotateCcw className="size-3" /></button>
                     )}
                     {isCompleted && (
                       <button onClick={() => handleDelete(p)} className="rounded-sm p-1 text-muted-foreground/70 hover:text-[#e8241a]" title="Delete"><Trash2 className="size-3" /></button>

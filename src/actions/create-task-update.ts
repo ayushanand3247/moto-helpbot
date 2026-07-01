@@ -1,6 +1,7 @@
 "use server";
 
 import { getMutationClient } from "@/lib/supabase/server-mutation";
+import { revalidatePath } from "next/cache";
 
 export async function createTaskUpdate(data: {
   task_id: string;
@@ -70,6 +71,10 @@ export async function createTaskUpdate(data: {
       ]);
     }
   }
+
+  revalidatePath(`/tasks/${data.task_id}`);
+  revalidatePath("/projects");
+  revalidatePath("/dashboard");
 
   return { success: true, update_id: updateId };
 }

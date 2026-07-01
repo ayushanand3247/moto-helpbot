@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { updateProfile } from "@/actions/profile/update-profile";
@@ -16,6 +17,7 @@ type Props = {
 export function ProfileForm({
   profile,
 }: Props) {
+  const router = useRouter();
   const [message, setMessage] =
     useState("");
 
@@ -26,6 +28,9 @@ export function ProfileForm({
       await updateProfile(formData);
 
     setMessage(result.message);
+    if (result.success) {
+      router.refresh();
+    }
   }
 
   return (

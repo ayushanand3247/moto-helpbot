@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import Link from "next/link";
 import {
@@ -55,6 +56,8 @@ export function TaskCard({
   const [error, setError] = useState<string | null>(null);
   const isDone = status === "APPROVED";
 
+  const router = useRouter();
+
   const handleComplete = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -65,6 +68,8 @@ export function TaskCard({
     setCompleting(false);
     if (!res.success) {
       setError(res.error ?? "Failed to complete task");
+    } else {
+      router.refresh();
     }
   };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { updateUser } from "@/actions/admin/update-user";
 import {
   Dialog,
@@ -48,6 +49,7 @@ export function EditUserModal({ user, subsystems, open, onOpenChange }: Props) {
   const [subsystemId, setSubsystemId] = useState(user.subsystem_id || "");
   const [position, setPosition] = useState(user.position || "");
   const [isActive, setIsActive] = useState(user.is_active !== false);
+  const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -71,6 +73,7 @@ export function EditUserModal({ user, subsystems, open, onOpenChange }: Props) {
 
     setSaving(false);
     onOpenChange(false);
+    router.refresh();
   };
 
   const handleOpenChange = (nextOpen: boolean) => {

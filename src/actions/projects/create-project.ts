@@ -50,6 +50,7 @@ export async function createProject(
   }
 
   revalidatePath("/projects");
+  revalidatePath("/dashboard");
 
   return data;
 }

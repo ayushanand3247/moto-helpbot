@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,7 @@ type Props = { subsystems: any[] };
 const COLORS = ["#e8241a", "#38bdf8", "#22c55e", "#ff6b2b", "#a78bfa", "#f59e0b", "#ec4899", "#14b8a6"];
 
 export function TeamSubsystemManagement({ subsystems }: Props) {
+  const router = useRouter();
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -22,21 +24,25 @@ export function TeamSubsystemManagement({ subsystems }: Props) {
     await createSubsystem({ name: newName.trim() });
     setNewName("");
     setCreating(false);
+    router.refresh();
   };
 
   const handleRename = async (id: string) => {
     if (!renameVal.trim()) return;
     await renameSubsystem(id, renameVal.trim());
     setRenaming(null);
+    router.refresh();
   };
 
   const handleDelete = async (id: string) => {
     await deleteSubsystem(id);
     setConfirmDelete(null);
+    router.refresh();
   };
 
   const handleColor = async (id: string, color: string) => {
     await updateSubsystem(id, { color });
+    router.refresh();
   };
 
   return (

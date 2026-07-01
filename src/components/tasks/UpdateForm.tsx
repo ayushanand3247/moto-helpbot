@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import { submitUpdate } from "@/actions/tasks";
 import { createClient } from "@/lib/supabase/client";
 import { Database } from "@/lib/database/database.types";
@@ -57,6 +58,7 @@ export function UpdateForm({
   userId,
   createdBy,
 }: UpdateFormProps) {
+  const router = useRouter();
   const [content, setContent] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
@@ -172,6 +174,7 @@ export function UpdateForm({
       setContent("");
       setSelectedFiles([]);
       setUploadProgress({});
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit update");
     } finally {

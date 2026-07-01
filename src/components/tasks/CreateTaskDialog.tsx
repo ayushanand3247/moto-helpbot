@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { createTask } from "@/actions/tasks/create-task";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,7 @@ export function CreateTaskDialog({
   members,
   subsystems,
 }: Props) {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedAssigneeIds, setSelectedAssigneeIds] = useState<string[]>([]);
   const form = useForm<FormValues>({
@@ -88,6 +90,7 @@ export function CreateTaskDialog({
       form.reset();
       setSelectedAssigneeIds([]);
       onOpenChange(false);
+      router.refresh();
     } catch (error) {
       console.error("Failed to create task:", error);
       form.setError("title", {

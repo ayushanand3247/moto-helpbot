@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { sendInvitation, cancelInvitation, resendInvitation } from "@/actions/admin/invitations";
@@ -22,6 +23,7 @@ const statusVariant: Record<string, "success" | "outline" | "warning"> = {
 };
 
 export function InvitationManagement({ invitations, subsystems }: Props) {
+  const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ email: "", full_name: "", role: "MEMBER", subsystem_id: "" });
   const [copied, setCopied] = useState<string | null>(null);
@@ -42,6 +44,7 @@ export function InvitationManagement({ invitations, subsystems }: Props) {
     });
     setForm({ email: "", full_name: "", role: "MEMBER", subsystem_id: "" });
     setShowCreate(false);
+    router.refresh();
   };
 
   const handleCopyLink = (token: string, id: string) => {
@@ -122,8 +125,8 @@ export function InvitationManagement({ invitations, subsystems }: Props) {
                     <div className="flex gap-1">
                       {status === "Pending" && (
                         <>
-                          <button onClick={() => resendInvitation(inv.id)} className="rounded-sm p-1 text-muted-foreground/70 hover:text-foreground" title="Resend"><RefreshCw className="size-3" /></button>
-                          <button onClick={() => cancelInvitation(inv.id)} className="rounded-sm p-1 text-muted-foreground/70 hover:text-[#e8241a]" title="Cancel"><Trash2 className="size-3" /></button>
+                          <button onClick={async () => { await resendInvitation(inv.id); router.refresh(); }} className="rounded-sm p-1 text-muted-foreground/70 hover:text-foreground" title="Resend"><RefreshCw className="size-3" /></button>
+                          <button onClick={async () => { await cancelInvitation(inv.id); router.refresh(); }} className="rounded-sm p-1 text-muted-foreground/70 hover:text-[#e8241a]" title="Cancel"><Trash2 className="size-3" /></button>
                         </>
                       )}
                       {inv.token && (

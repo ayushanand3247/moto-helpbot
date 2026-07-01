@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { bulkCreateUsers, type BulkUserInput, type BulkUserResult } from "@/actions/admin/bulk-create-users";
 import { Check, AlertCircle, Eye, EyeOff, Copy, CheckCheck } from "lucide-react";
@@ -9,6 +10,7 @@ type Subsystem = { id: string; name: string; [key: string]: unknown };
 type Props = { subsystems: Subsystem[] };
 
 export function BulkUserImport({ subsystems }: Props) {
+  const router = useRouter();
   const [rawInput, setRawInput] = useState("");
   const [parsed, setParsed] = useState<BulkUserInput[]>([]);
   const [results, setResults] = useState<BulkUserResult[] | null>(null);
@@ -71,6 +73,7 @@ export function BulkUserImport({ subsystems }: Props) {
     const { results } = await bulkCreateUsers(parsed);
     setResults(results);
     setLoading(false);
+    router.refresh();
   };
 
   const successCount = results?.filter((r) => r.status === "success").length ?? 0;
