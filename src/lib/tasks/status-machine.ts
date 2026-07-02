@@ -14,46 +14,46 @@ const transitions: TransitionRule[] = [
   {
     from: "TODO",
     to: "IN_PROGRESS",
-    allowedRoles: ["MEMBER", "SUBSYSTEM_LEAD", "CAPTAIN", "TEAM_MANAGER", "ADMIN"],
+    allowedRoles: ["ADMIN", "BOARD", "MANAGER", "MEMBER"],
   },
   {
     from: "IN_PROGRESS",
     to: "IN_REVIEW",
-    allowedRoles: ["MEMBER", "SUBSYSTEM_LEAD", "CAPTAIN", "TEAM_MANAGER", "ADMIN"],
+    allowedRoles: ["ADMIN", "BOARD", "MANAGER", "MEMBER"],
   },
   {
     from: "IN_REVIEW",
     to: "APPROVED",
-    allowedRoles: ["SUBSYSTEM_LEAD", "CAPTAIN", "TEAM_MANAGER", "ADMIN"],
+    allowedRoles: ["ADMIN", "BOARD"],
   },
   {
     from: "IN_REVIEW",
     to: "IN_PROGRESS",
-    allowedRoles: ["SUBSYSTEM_LEAD", "CAPTAIN", "TEAM_MANAGER", "ADMIN"],
+    allowedRoles: ["ADMIN", "BOARD"],
     requiresComment: true,
   },
   {
     from: "TODO",
     to: "BLOCKED",
-    allowedRoles: ["SUBSYSTEM_LEAD", "CAPTAIN", "TEAM_MANAGER", "ADMIN"],
+    allowedRoles: ["ADMIN", "BOARD"],
     requiresComment: true,
   },
   {
     from: "IN_PROGRESS",
     to: "BLOCKED",
-    allowedRoles: ["SUBSYSTEM_LEAD", "CAPTAIN", "TEAM_MANAGER", "ADMIN"],
+    allowedRoles: ["ADMIN", "BOARD"],
     requiresComment: true,
   },
   {
     from: "IN_REVIEW",
     to: "BLOCKED",
-    allowedRoles: ["SUBSYSTEM_LEAD", "CAPTAIN", "TEAM_MANAGER", "ADMIN"],
+    allowedRoles: ["ADMIN", "BOARD"],
     requiresComment: true,
   },
   {
     from: "BLOCKED",
     to: "IN_PROGRESS",
-    allowedRoles: ["SUBSYSTEM_LEAD", "CAPTAIN", "TEAM_MANAGER", "ADMIN"],
+    allowedRoles: ["ADMIN", "BOARD"],
   },
 ];
 

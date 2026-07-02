@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Bell, Search, Plus, SlidersHorizontal, X } from "lucide-react";
+import { Bell, Search, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SubsystemCard, type SubsystemKey } from "@/components/ui/SubsystemCard";
 import { TaskTable, type Task, type TaskStatus } from "@/components/ui/TaskTable";
@@ -22,34 +22,11 @@ type Props = {
     extraCount: number;
   }[];
   notifications: Notification[];
-  currentUser: { id: string; name: string; role: string; subsystem?: string } | null;
+  currentUser: { id: string; name: string; role: "ADMIN" | "BOARD" | "MANAGER" | "MEMBER"; subsystem?: string } | null;
   stats: { label: string; value: string; sub: string; accent?: boolean }[];
   deadlines: { date: string; title: string; subsystem: string; priority: string }[];
   activity: { actor: string; name: string; action: string; subsystem: string; time: string }[];
 };
-
-const PRIORITIES = ["HIGH", "MEDIUM", "LOW"] as const;
-const STATUSES: TaskStatus[] = ["To Do", "In Progress", "In Review", "Done"];
-
-function todayStr(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function dateToYMD(dateStr: string): string {
-  // Handles "28 May 2025" format from TaskTable
-  try {
-    const months: Record<string, string> = {
-      jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06",
-      jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12",
-    };
-    const parts = dateStr.split(" ");
-    if (parts.length === 3) {
-      return `${parts[2]}-${months[parts[1].toLowerCase()]}-${parts[0].padStart(2, "0")}`;
-    }
-  } catch {}
-  return "";
-}
 
 export default function DashboardClient({
   initialTasks,
@@ -62,7 +39,6 @@ export default function DashboardClient({
 }: Props) {
   // ── Search + filter state ─────────────────────────────────
   const [search, setSearch] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false);
   const [filterSubs, setFilterSubs] = useState<string[]>([]);
   const [filterPrio, setFilterPrio] = useState<string[]>([]);
   const [filterStatus, setFilterStatus] = useState<string[]>([]);
@@ -122,8 +98,6 @@ export default function DashboardClient({
 
     return result;
   }, [tasks, search, filterSubs, filterPrio, filterStatus]);
-
-  const hasFilters = filterSubs.length > 0 || filterPrio.length > 0 || filterStatus.length > 0;
 
   // ── Handlers ──────────────────────────────────────────────
   const router = useRouter();
@@ -214,10 +188,6 @@ export default function DashboardClient({
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const toggleFilter = (arr: string[], val: string, setter: (v: string[]) => void) => {
-    setter(arr.includes(val) ? arr.filter((v) => v !== val) : [...arr, val]);
   };
 
   const initials = currentUser

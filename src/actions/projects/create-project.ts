@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getMutationClient } from "@/lib/supabase/server-mutation";
 import { getProfile } from "@/lib/auth/get-profile";
+import { canManageProjects } from "@/lib/roles";
 
 type CreateProjectInput = {
   title: string;
@@ -22,7 +23,7 @@ export async function createProject(
   }
 
   // Only board+ can create projects
-  if (!["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD"].includes(profile.role)) {
+  if (!canManageProjects(profile.role)) {
     throw new Error("Insufficient permissions to create projects");
   }
 

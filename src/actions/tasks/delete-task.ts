@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getMutationClient } from "@/lib/supabase/server-mutation";
 import { getProfile } from "@/lib/auth/get-profile";
+import { isMember } from "@/lib/roles";
 
 /**
  * Delete a task and ALL its references:
@@ -39,8 +40,8 @@ export async function deleteTask(taskId: string): Promise<{ success: boolean; er
   // Permission check:
   // ADMIN — can delete any task
   // MEMBER — can only delete tasks assigned to them
-  // Board roles (TEAM_MANAGER, CAPTAIN, SUBSYSTEM_LEAD) — can delete any
-  if (profile.role === "MEMBER") {
+  // BOARD — can delete any task
+  if (isMember(profile.role)) {
     const { data: assignments } = await supabase
       .from("task_assignments")
       .select("user_id")

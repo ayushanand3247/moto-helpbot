@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getProfile } from "./get-profile";
+import { isAdmin, isBoard } from "@/lib/roles";
 
 export async function requireBoard() {
   const profile = await getProfile();
@@ -8,13 +9,7 @@ export async function requireBoard() {
     redirect("/login");
   }
 
-  const allowed =
-    profile.role === "ADMIN" ||
-    profile.role === "TEAM_MANAGER" ||
-    profile.role === "CAPTAIN" ||
-    profile.role === "SUBSYSTEM_LEAD";
-
-  if (!allowed) {
+  if (!isAdmin(profile.role) && !isBoard(profile.role)) {
     redirect("/dashboard");
   }
 

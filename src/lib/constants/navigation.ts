@@ -9,16 +9,15 @@ import {
 
 export type UserRole =
   | "ADMIN"
-  | "TEAM_MANAGER"
-  | "CAPTAIN"
-  | "SUBSYSTEM_LEAD"
+  | "BOARD"
+  | "MANAGER"
   | "MEMBER";
 
 export type NavigationItem = {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  roles: ("ADMIN" | "TEAM_MANAGER" | "CAPTAIN" | "SUBSYSTEM_LEAD" | "MEMBER")[];
+  roles: ("ADMIN" | "BOARD" | "MANAGER" | "MEMBER")[];
 };
 
 export const navigation: NavigationItem[] = [
@@ -26,31 +25,31 @@ export const navigation: NavigationItem[] = [
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    roles: ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD", "MEMBER"],
+    roles: ["ADMIN", "BOARD", "MANAGER", "MEMBER"],
   },
   {
     title: "Projects",
     href: "/projects",
     icon: FolderKanban,
-    roles: ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD", "MEMBER"],
+    roles: ["ADMIN", "BOARD", "MANAGER", "MEMBER"],
   },
   {
     title: "Tasks",
     href: "/tasks",
     icon: ListChecks,
-    roles: ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD", "MEMBER"],
+    roles: ["ADMIN", "BOARD", "MANAGER", "MEMBER"],
   },
   {
     title: "Team",
     href: "/team",
     icon: Users,
-    roles: ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD", "MEMBER"],
+    roles: ["ADMIN", "BOARD", "MANAGER", "MEMBER"],
   },
   {
     title: "Settings",
     href: "/settings",
     icon: Settings,
-    roles: ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD", "MEMBER"],
+    roles: ["ADMIN", "BOARD", "MANAGER", "MEMBER"],
   },
   {
     title: "Admin",

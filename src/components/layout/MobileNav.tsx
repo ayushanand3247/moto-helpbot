@@ -25,9 +25,8 @@ export function MobileNav({
       item.roles.includes(
         profile.role as
           | "ADMIN"
-          | "TEAM_MANAGER"
-          | "CAPTAIN"
-          | "SUBSYSTEM_LEAD"
+          | "BOARD"
+          | "MANAGER"
           | "MEMBER"
       )
   );

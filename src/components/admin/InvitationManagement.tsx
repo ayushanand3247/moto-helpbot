@@ -4,11 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { sendInvitation, cancelInvitation, resendInvitation } from "@/actions/admin/invitations";
-import { Plus, X, Copy, RefreshCw, Trash2 } from "lucide-react";
+import { Plus, Copy, RefreshCw, Trash2 } from "lucide-react";
 
 type Props = { invitations: any[]; subsystems: any[] };
 
-const ROLES = ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD", "MEMBER"];
+const ROLES = ["ADMIN", "BOARD", "MANAGER", "MEMBER"];
 
 function getInvStatus(inv: any): string {
   if (inv.accepted_at) return "Accepted";

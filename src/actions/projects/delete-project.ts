@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getMutationClient } from "@/lib/supabase/server-mutation";
 import { getProfile } from "@/lib/auth/get-profile";
+import { canDeleteProject } from "@/lib/roles";
 
 /**
  * Delete a project and ALL its references:
@@ -24,7 +25,7 @@ export async function deleteProject(projectId: string): Promise<{ success: boole
   if (!profile) return { success: false, error: "Unauthorized" };
 
   // Only ADMIN can delete projects
-  if (profile.role !== "ADMIN") return { success: false, error: "Only admins can delete projects" };
+  if (!canDeleteProject(profile.role)) return { success: false, error: "Only admins can delete projects" };
 
   // Use service role client to bypass RLS — permission checks are done explicitly
   const supabase = getMutationClient();

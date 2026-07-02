@@ -7,6 +7,7 @@ import { getTasks } from "@/lib/tasks/get-tasks";
 import { getActiveMembers } from "@/lib/team/get-active-members";
 import { getSubsystems } from "@/lib/subsystems/get-subsystems";
 import { ProjectDetail } from "@/components/projects/ProjectDetail";
+import { canManageProjects } from "@/lib/roles";
 
 export default async function ProjectPage({
   params,
@@ -37,11 +38,7 @@ export default async function ProjectPage({
     }))
   );
 
-  const canCreate =
-    profile?.role === "ADMIN" ||
-    profile?.role === "TEAM_MANAGER" ||
-    profile?.role === "CAPTAIN" ||
-    profile?.role === "SUBSYSTEM_LEAD";
+  const canCreate = canManageProjects(profile?.role ?? null);
 
   return (
     <div className="space-y-6 moto-animate-in">

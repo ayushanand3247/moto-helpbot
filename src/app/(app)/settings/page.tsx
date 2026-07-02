@@ -1,9 +1,14 @@
+import { notFound } from "next/navigation";
 import { ProfileForm } from "@/components/settings/ProfileForm";
 
 import { getProfile } from "@/lib/auth/get-profile";
 
 export default async function SettingsPage() {
   const profile = await getProfile();
+
+  if (!profile) {
+    notFound();
+  }
 
   return (
     <div className="space-y-8 moto-animate-in">

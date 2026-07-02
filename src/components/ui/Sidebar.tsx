@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { logout } from "@/actions/auth";
+import { isAdmin } from "@/lib/roles";
 
 type NavItem = {
   label: string;
@@ -35,7 +36,7 @@ const NAV_ITEMS: NavItem[] = [
 
 type User = {
   name: string;
-  role: "ADMIN" | "TEAM_MANAGER" | "CAPTAIN" | "SUBSYSTEM_LEAD" | "MEMBER";
+  role: "ADMIN" | "BOARD" | "MANAGER" | "MEMBER";
   subsystem?: string;
 };
 
@@ -59,7 +60,7 @@ export function Sidebar() {
       .catch(() => {});
   }, []);
 
-  const isAdmin = user?.role === "ADMIN";
+  const isUserAdmin = isAdmin(user?.role ?? null);
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex w-[220px] flex-col border-r border-[#111115] bg-[#050507]">
@@ -78,7 +79,7 @@ export function Sidebar() {
 
       {/* ── Nav ──────────────────────────────────────────── */}
       <nav className="flex-1 space-y-px px-2 py-3">
-        {NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map((item) => {
+        {NAV_ITEMS.filter(item => !item.adminOnly || isUserAdmin).map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link

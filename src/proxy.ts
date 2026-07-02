@@ -5,11 +5,19 @@ import { createServerClient } from "@supabase/ssr";
 const PUBLIC_ROUTES = [
   "/login",
   "/invite",
+  "/api/auth/callback",
+];
+
+// Role-based route access:
+// ADMIN: full access
+// BOARD: full access
+// MANAGER: no admin pages
+// MEMBER: dashboard + tasks + team + settings only
+const ADMIN_ONLY_ROUTES = [
+  "/admin",
 ];
 
 // ── Simple in-memory rate limiter for login brute-force protection ──────
-// Tracks failed attempts per IP; blocks after 10 attempts in 15 minutes.
-// Resets on successful login (handled by clearing on successful auth).
 const loginAttempts = new Map<string, { count: number; resetAt: number }>();
 
 function rateLimited(ip: string): boolean {
@@ -23,7 +31,7 @@ function rateLimited(ip: string): boolean {
   return entry.count > 10;
 }
 
-export async function middleware(
+export async function proxy(
   request: NextRequest
 ) {
   let response = NextResponse.next({
@@ -89,22 +97,38 @@ export async function middleware(
       pathname.startsWith(route)
     );
 
+  // Redirect unauthenticated users to login
   if (!user && !isPublic) {
     return NextResponse.redirect(
       new URL("/login", request.url)
     );
   }
 
-  if (
-    user &&
-    pathname === "/login"
-  ) {
+  // Redirect authenticated users away from login
+  if (user && pathname === "/login") {
     return NextResponse.redirect(
-      new URL(
-        "/dashboard",
-        request.url
-      )
+      new URL("/dashboard", request.url)
     );
+  }
+
+  // Role-based route protection
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    const role = profile?.role as string | undefined;
+
+    // Admin-only routes
+    if (ADMIN_ONLY_ROUTES.some((route) => pathname.startsWith(route))) {
+      if (role !== "ADMIN") {
+        return NextResponse.redirect(
+          new URL("/dashboard", request.url)
+        );
+      }
+    }
   }
 
   return response;

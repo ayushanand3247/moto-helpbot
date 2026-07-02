@@ -3,10 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { getMutationClient } from "@/lib/supabase/server-mutation";
 import { getProfile } from "@/lib/auth/get-profile";
+import { canManageSubsystems } from "@/lib/roles";
 
 export async function createSubsystem(data: { name: string; icon?: string; color?: string }) {
   const admin = await getProfile();
-  if (!admin || admin.role !== "ADMIN") return { error: "Unauthorized" };
+  if (!admin || !canManageSubsystems(admin.role)) return { error: "Unauthorized" };
 
   const supabase = getMutationClient();
   const { data: result, error } = await supabase
@@ -22,7 +23,7 @@ export async function createSubsystem(data: { name: string; icon?: string; color
 
 export async function renameSubsystem(subsystemId: string, name: string) {
   const admin = await getProfile();
-  if (!admin || admin.role !== "ADMIN") return { error: "Unauthorized" };
+  if (!admin || !canManageSubsystems(admin.role)) return { error: "Unauthorized" };
 
   const supabase = getMutationClient();
   const { error } = await supabase.from("subsystems").update({ name }).eq("id", subsystemId);
@@ -34,7 +35,7 @@ export async function renameSubsystem(subsystemId: string, name: string) {
 
 export async function deleteSubsystem(subsystemId: string) {
   const admin = await getProfile();
-  if (!admin || admin.role !== "ADMIN") return { error: "Unauthorized" };
+  if (!admin || !canManageSubsystems(admin.role)) return { error: "Unauthorized" };
 
   const supabase = getMutationClient();
 
@@ -55,7 +56,7 @@ export async function deleteSubsystem(subsystemId: string) {
 
 export async function updateSubsystem(subsystemId: string, data: { icon?: string; color?: string; name?: string }) {
   const admin = await getProfile();
-  if (!admin || admin.role !== "ADMIN") return { error: "Unauthorized" };
+  if (!admin || !canManageSubsystems(admin.role)) return { error: "Unauthorized" };
 
   const supabase = getMutationClient();
   const { error } = await supabase.from("subsystems").update(data).eq("id", subsystemId);

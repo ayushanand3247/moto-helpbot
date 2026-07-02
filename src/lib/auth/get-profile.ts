@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/supabase/admin";
+import { canAccessDashboard } from "@/lib/roles";
 
 export async function getProfile() {
   // Use SSR client for auth (needs cookies)
@@ -9,7 +10,7 @@ export async function getProfile() {
 
   if (!user) return null;
 
-  // Use admin client for profile query (faster, no RLS)
+  // Fetch profile with subsystem details
   const { data: profile } = await adminClient
     .from("profiles")
     .select(`
@@ -18,6 +19,11 @@ export async function getProfile() {
     `)
     .eq("id", user.id)
     .single();
+
+  // Validate profile role using centralized permissions
+  if (profile && !canAccessDashboard(profile.role)) {
+    return null;
+  }
 
   return profile;
 }

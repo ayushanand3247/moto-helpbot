@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { getProfile } from "./get-profile";
+import { isAdmin } from "@/lib/roles";
 
 export async function requireAdmin() {
   const profile = await getProfile();
 
-  if (!profile || profile.role !== "ADMIN") {
+  if (!profile || !isAdmin(profile.role)) {
     redirect("/dashboard");
   }
 

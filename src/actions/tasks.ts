@@ -1,11 +1,11 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { getMutationClient } from "@/lib/supabase/server-mutation";
 import { getProfile } from "@/lib/auth/get-profile";
 import { canTransition, requiresComment } from "@/lib/tasks/status-machine";
 import { Database } from "@/lib/database/database.types";
 import { revalidatePath } from "next/cache";
+import { isMember } from "@/lib/roles";
 
 type TaskStatus = Database["public"]["Enums"]["task_status"];
 type UpdateType = Database["public"]["Enums"]["update_type"];
@@ -58,7 +58,7 @@ export async function submitUpdate(input: SubmitUpdateInput) {
   }
 
   // For MEMBER working on task — check junction table too
-  if (profile.role === "MEMBER" && task.assigned_to !== profile.id) {
+  if (isMember(profile.role) && task.assigned_to !== profile.id) {
     // Also check if user is in task_assignments
     const { data: assignments } = await supabase
       .from("task_assignments")
@@ -211,7 +211,7 @@ export async function submitUpdate(input: SubmitUpdateInput) {
     const { data: boardMembers } = await supabase
       .from("profiles")
       .select("id")
-      .in("role", ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD"]);
+      .in("role", ["ADMIN", "BOARD"]);
 
     if (boardMembers) {
       notificationRecipients.push(
@@ -350,10 +350,11 @@ export async function createTask(data: {
 }
 
 // ── getTaskAssignees — for the multi-assignee selector ─────────
-// Uses regular client to respect RLS (profiles_select_own_or_board)
+// Uses admin client because this is called from server actions
+// where permission checks are handled at the action level.
 
 export async function getTaskAssignees() {
-  const supabase = await createClient();
+  const supabase = getMutationClient();
 
   const { data, error } = await supabase
     .from("profiles")

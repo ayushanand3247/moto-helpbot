@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/supabase/admin";
 
 export type Notification = {
   id: string;
@@ -30,36 +30,9 @@ function timeAgo(dateStr: string): string {
 export async function getRecentNotifications(
   limit = 10
 ): Promise<Notification[]> {
-  const supabase = await createClient();
+  const supabase = adminClient;
 
-  // Try activity_logs first
-  const { data: logs, error: logError } = await supabase
-    .from("activity_logs")
-    .select(
-      `
-      id,
-      action,
-      created_at,
-      actor_id,
-      profiles ( full_name ),
-      tasks!activity_logs_entity_id_fkey ( subsystems ( name ) )
-    `
-    )
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  if (!logError && logs && logs.length > 0) {
-    return logs.map((log: any) => ({
-      id: log.id,
-      actor: log.profiles?.full_name ? getInitials(log.profiles.full_name) : "—",
-      name: log.profiles?.full_name ?? "Unknown",
-      action: log.action,
-      subsystem: log.tasks?.subsystems?.name ?? "—",
-      time: log.created_at ? timeAgo(log.created_at) : "—",
-    }));
-  }
-
-  // Fallback: derive from recently updated tasks (last 48h)
+  // Derive from recently updated tasks (last 48h)
   const twoDaysAgo = new Date(Date.now() - 48 * 3600000).toISOString();
 
   const { data: tasks } = await supabase

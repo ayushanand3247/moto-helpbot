@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { adminClient } from "@/lib/supabase/admin";
 import { getProfile } from "@/lib/auth/get-profile";
+import { isAdmin } from "@/lib/roles";
 
 /**
  * Bulk-create users from a list of { name, email, subsystem }.
@@ -39,7 +40,7 @@ export async function bulkCreateUsers(
   users: BulkUserInput[]
 ): Promise<{ results: BulkUserResult[] }> {
   const admin = await getProfile();
-  if (!admin || admin.role !== "ADMIN") {
+  if (!admin || !isAdmin(admin.role)) {
     return {
       results: users.map((u) => ({
         ...u,
@@ -50,13 +51,20 @@ export async function bulkCreateUsers(
     };
   }
 
-  // 1. Get all subsystems for name → id lookup
+  const normalizeSubsystemName = (value: string | null | undefined) =>
+    typeof value === "string"
+      ? value.replace(/[\s\u00A0]+/g, " ").trim().toLowerCase()
+      : "";
+
+  // 1. Get all subsystems for display name → id lookup
   const { data: subsystems } = await adminClient
     .from("subsystems")
     .select("id, name");
 
   const subMap = new Map<string, string>();
-  (subsystems || []).forEach((s: { id: string; name: string }) => subMap.set(s.name.toLowerCase(), s.id));
+  (subsystems || []).forEach((s: { id: string; name: string }) =>
+    subMap.set(normalizeSubsystemName(s.name), s.id)
+  );
 
   // 2. Get all existing profiles to detect duplicate names for password suffix
   const { data: existingProfiles } = await adminClient
@@ -87,8 +95,22 @@ export async function bulkCreateUsers(
     // Track for within-batch dedup
     batchNameCount.set(base, batchCount + 1);
 
-    // Resolve subsystem
-    const subsystemId = subMap.get(user.subsystem_name.toLowerCase().trim()) || null;
+    // Resolve subsystem from the display name stored in subsystems.name
+    const subsystemName = user.subsystem_name;
+    const normalizedSubsystemName = normalizeSubsystemName(subsystemName);
+    const subsystemId = normalizedSubsystemName
+      ? subMap.get(normalizedSubsystemName) ?? null
+      : null;
+
+    if (normalizedSubsystemName && subsystemId === null) {
+      results.push({
+        ...user,
+        password,
+        status: "error",
+        error: `Unknown subsystem "${subsystemName.trim()}"`,
+      });
+      continue;
+    }
 
     // 3. Create auth user via service role
     const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
@@ -110,24 +132,60 @@ export async function bulkCreateUsers(
       continue;
     }
 
-    // 4. Create profile row
-    const { error: profileError } = await adminClient.from("profiles").insert({
-      id: authData.user.id,
-      email: user.email.trim().toLowerCase(),
-      full_name: user.full_name.trim(),
-      role: "MEMBER",
-      subsystem_id: subsystemId,
-      is_active: true,
-    });
+    // 4. Ensure profile row exists and is in sync with auth
+    const { data: existingProfile, error: existingProfileError } = await adminClient
+      .from("profiles")
+      .select("id")
+      .eq("id", authData.user.id)
+      .maybeSingle();
 
-    if (profileError) {
+    if (existingProfileError) {
       results.push({
         ...user,
         password,
         status: "error",
-        error: `Auth created but profile failed: ${profileError.message}`,
+        error: `Auth created but profile lookup failed: ${existingProfileError.message}`,
       });
       continue;
+    }
+
+    if (existingProfile) {
+      const { error: updateError } = await adminClient.from("profiles").update({
+        email: user.email.trim().toLowerCase(),
+        full_name: user.full_name.trim(),
+        role: "MEMBER",
+        subsystem_id: subsystemId,
+        is_active: true,
+      }).eq("id", authData.user.id);
+
+      if (updateError) {
+        results.push({
+          ...user,
+          password,
+          status: "error",
+          error: `Auth created but profile update failed: ${updateError.message}`,
+        });
+        continue;
+      }
+    } else {
+      const { error: profileError } = await adminClient.from("profiles").insert({
+        id: authData.user.id,
+        email: user.email.trim().toLowerCase(),
+        full_name: user.full_name.trim(),
+        role: "MEMBER",
+        subsystem_id: subsystemId,
+        is_active: true,
+      });
+
+      if (profileError) {
+        results.push({
+          ...user,
+          password,
+          status: "error",
+          error: `Auth created but profile failed: ${profileError.message}`,
+        });
+        continue;
+      }
     }
 
     // 5. Log activity

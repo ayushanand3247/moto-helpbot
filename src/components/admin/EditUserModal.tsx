@@ -38,9 +38,8 @@ type Props = {
 
 const ROLES = [
   { value: "MEMBER", label: "Member" },
-  { value: "SUBSYSTEM_LEAD", label: "Subsystem Lead" },
-  { value: "CAPTAIN", label: "Captain" },
-  { value: "TEAM_MANAGER", label: "Team Manager" },
+  { value: "MANAGER", label: "Manager" },
+  { value: "BOARD", label: "Board" },
   { value: "ADMIN", label: "Admin" },
 ];
 

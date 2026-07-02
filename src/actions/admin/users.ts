@@ -3,19 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { getMutationClient } from "@/lib/supabase/server-mutation";
 import { getProfile } from "@/lib/auth/get-profile";
-
-const EDITOR_ROLES = ["ADMIN", "TEAM_MANAGER", "CAPTAIN"];
-
-function canEdit(role: string | null | undefined): boolean {
-  return EDITOR_ROLES.includes(role || "");
-}
-
-const VALID_ROLES = ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD", "MEMBER"];
+import { canEditUserDetails } from "@/lib/roles";
 
 export async function updateUserRole(userId: string, role: string) {
   const admin = await getProfile();
-  if (!admin || !canEdit(admin.role)) return { error: "Unauthorized" };
-  if (!VALID_ROLES.includes(role)) return { error: "Invalid role" };
+  if (!admin || !canEditUserDetails(admin.role)) return { error: "Unauthorized" };
+  if (role !== "ADMIN" && role !== "BOARD" && role !== "MANAGER" && role !== "MEMBER") return { error: "Invalid role" };
   if (userId === admin.id) return { error: "Cannot change your own role" };
 
   const supabase = getMutationClient();
@@ -38,7 +31,7 @@ export async function updateUserRole(userId: string, role: string) {
 
 export async function updateUserSubsystem(userId: string, subsystemId: string | null) {
   const admin = await getProfile();
-  if (!admin || !canEdit(admin.role)) return { error: "Unauthorized" };
+  if (!admin || !canEditUserDetails(admin.role)) return { error: "Unauthorized" };
 
   // Validate subsystem if provided
   if (subsystemId) {
@@ -59,7 +52,7 @@ export async function updateUserSubsystem(userId: string, subsystemId: string | 
 
 export async function updateUserPosition(userId: string, position: string | null) {
   const admin = await getProfile();
-  if (!admin || !canEdit(admin.role)) return { error: "Unauthorized" };
+  if (!admin || !canEditUserDetails(admin.role)) return { error: "Unauthorized" };
 
   const supabase = getMutationClient();
   const { error } = await supabase.from("profiles").update({ position: position || null }).eq("id", userId);
@@ -73,7 +66,7 @@ export async function updateUserPosition(userId: string, position: string | null
 
 export async function toggleUserActive(userId: string, isActive: boolean) {
   const admin = await getProfile();
-  if (!admin || !canEdit(admin.role)) return { error: "Unauthorized" };
+  if (!admin || !canEditUserDetails(admin.role)) return { error: "Unauthorized" };
 
   const supabase = getMutationClient();
   const { error } = await supabase.from("profiles").update({ is_active: isActive }).eq("id", userId);
@@ -95,7 +88,7 @@ export async function toggleUserActive(userId: string, isActive: boolean) {
 
 export async function removeUser(userId: string) {
   const admin = await getProfile();
-  if (!admin || !canEdit(admin.role)) return { error: "Unauthorized" };
+  if (!admin || !canEditUserDetails(admin.role)) return { error: "Unauthorized" };
   if (userId === admin.id) return { error: "Cannot remove yourself" };
 
   const supabase = getMutationClient();

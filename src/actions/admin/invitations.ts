@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getMutationClient } from "@/lib/supabase/server-mutation";
 import { getProfile } from "@/lib/auth/get-profile";
+import { canManageInvitations, isAdmin } from "@/lib/roles";
 
 export async function sendInvitation(data: {
   email: string;
@@ -11,7 +12,7 @@ export async function sendInvitation(data: {
   subsystem_id?: string;
 }) {
   const admin = await getProfile();
-  if (!admin || admin.role !== "ADMIN") return { error: "Unauthorized" };
+  if (!admin || !canManageInvitations(admin.role)) return { error: "Unauthorized" };
 
   const supabase = getMutationClient();
 
@@ -43,7 +44,7 @@ export async function sendInvitation(data: {
 
 export async function cancelInvitation(invitationId: string) {
   const admin = await getProfile();
-  if (!admin || admin.role !== "ADMIN") return { error: "Unauthorized" };
+  if (!admin || !canManageInvitations(admin.role)) return { error: "Unauthorized" };
 
   const supabase = getMutationClient();
   const { error } = await supabase.from("invitations").delete().eq("id", invitationId);

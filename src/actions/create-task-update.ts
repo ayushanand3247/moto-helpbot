@@ -23,6 +23,38 @@ export async function createTaskUpdate(data: {
     return { success: false, message: "Unauthorized" };
   }
 
+  // Fetch the task to verify user has access
+  const { data: task } = await supabase
+    .from("tasks")
+    .select("id, assigned_to")
+    .eq("id", data.task_id)
+    .single();
+
+  if (!task) {
+    return { success: false, message: "Task not found" };
+  }
+
+  // Check if user is assigned to this task (primary or via junction)
+  const isPrimary = task.assigned_to === user.id;
+  const { data: assignments } = await supabase
+    .from("task_assignments")
+    .select("user_id")
+    .eq("task_id", data.task_id)
+    .eq("user_id", user.id);
+
+  if (!isPrimary && (!assignments || assignments.length === 0)) {
+    // Check if user is BOARD+ (can update any task)
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || (profile.role !== "ADMIN" && profile.role !== "BOARD")) {
+      return { success: false, message: "Unauthorized — not assigned to this task" };
+    }
+  }
+
   // Insert task update
   const { data: updateData, error: updateError } = await supabase
     .from("task_updates")

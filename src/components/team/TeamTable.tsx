@@ -27,17 +27,15 @@ type Props = {
 
 const roleVariant: Record<string, "default" | "warning" | "secondary"> = {
   ADMIN: "default",
-  TEAM_MANAGER: "warning",
-  CAPTAIN: "warning",
-  SUBSYSTEM_LEAD: "warning",
+  BOARD: "warning",
+  MANAGER: "warning",
   MEMBER: "secondary",
 };
 
 const roleDisplay: Record<string, string> = {
   ADMIN: "Admin",
-  TEAM_MANAGER: "Team Manager",
-  CAPTAIN: "Captain",
-  SUBSYSTEM_LEAD: "Subsystem Lead",
+  BOARD: "Board",
+  MANAGER: "Manager",
   MEMBER: "Member",
 };
 

@@ -3,11 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { getMutationClient } from "@/lib/supabase/server-mutation";
 import { getProfile } from "@/lib/auth/get-profile";
+import { canEditUserDetails } from "@/lib/roles";
 
-const ALLOWED_ROLES = ["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD", "MEMBER"] as const;
+const ALLOWED_ROLES = ["ADMIN", "BOARD", "MANAGER", "MEMBER"] as const;
 type EditableRole = (typeof ALLOWED_ROLES)[number];
-
-const EDITOR_ROLES: EditableRole[] = ["ADMIN", "TEAM_MANAGER", "CAPTAIN"];
 
 type UpdateUserParams = {
   userId: string;
@@ -21,8 +20,8 @@ export async function updateUser(params: UpdateUserParams) {
   const { userId, role, subsystem_id, position, is_active } = params;
 
   const editor = await getProfile();
-  if (!editor || !EDITOR_ROLES.includes(editor.role as EditableRole)) {
-    return { error: "Unauthorized — only Captain, Team Manager, or Admin can edit users" };
+  if (!editor || !canEditUserDetails(editor.role)) {
+    return { error: "Unauthorized — only Admin or Manager can edit users" };
   }
 
   if (userId === editor.id && role && role !== editor.role) {

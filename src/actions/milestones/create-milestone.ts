@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
 import { getMutationClient } from "@/lib/supabase/server-mutation";
 import { getUser } from "@/lib/auth/get-user";
+import { canManageMilestones } from "@/lib/roles";
 
 type CreateMilestoneInput = {
   projectId: string;
@@ -29,7 +29,7 @@ export async function createMilestone(
     .eq("id", user.id)
     .single();
 
-  if (!profile || !["ADMIN", "TEAM_MANAGER", "CAPTAIN", "SUBSYSTEM_LEAD"].includes(profile.role)) {
+  if (!profile || !canManageMilestones(profile.role)) {
     throw new Error("Insufficient permissions to create milestones");
   }
 

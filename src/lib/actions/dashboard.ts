@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/supabase/admin";
 import { getProfile } from "@/lib/auth/get-profile";
+import { isMember } from "@/lib/roles";
 import { revalidatePath } from "next/cache";
 
 // ── Types matching the TaskTable component ──────────────────────
@@ -157,7 +158,7 @@ export async function updateTaskStatus(
     return { success: false, error: "Unauthorized" };
   }
 
-  if (profile.role === "MEMBER") {
+  if (isMember(profile)) {
     const { data: task } = await supabase
       .from("tasks")
       .select("assigned_to, task_assignments ( user_id )")
@@ -308,8 +309,7 @@ function timeAgo(dateStr: string): string {
 export async function getRecentActivity(
   limit = 4
 ): Promise<ActivityItem[]> {
-  // Use regular client for activity_logs — RLS restricts to board+ only
-  const supabase = await createClient();
+  const supabase = adminClient;
 
   const { data: logs, error: logError } = await supabase
     .from("activity_logs")
@@ -319,8 +319,7 @@ export async function getRecentActivity(
       created_at,
       entity_type,
       actor_id,
-      profiles ( full_name ),
-      tasks ( title, subsystems ( name ) )
+      profiles ( full_name )
     `
     )
     .order("created_at", { ascending: false })
@@ -330,9 +329,9 @@ export async function getRecentActivity(
 
   return logs.map((log: any) => ({
     actor: log.profiles?.full_name ?? "System",
-    name: log.tasks?.title ?? log.action,
+    name: log.action,
     action: log.action,
-    subsystem: log.tasks?.subsystems?.name ?? "—",
+    subsystem: "—",
     time: timeAgo(log.created_at),
   }));
 }

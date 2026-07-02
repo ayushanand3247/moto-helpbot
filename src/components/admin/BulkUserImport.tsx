@@ -37,17 +37,15 @@ export function BulkUserImport({ subsystems }: Props) {
     const errors: string[] = [];
 
     lines.forEach((line, i) => {
-      // Support comma, tab, or pipe separated
-      const parts = line.split(/[,|\t]/).map((p) => p.trim());
-
-      if (parts.length < 2) {
-        errors.push(`Line ${i + 1}: needs at least name and email`);
+      const match = line.match(/^\s*([^,|\t]+?)\s*[,|\t]\s*([^,|\t]+?)\s*[,|\t]\s*(.+)$/);
+      if (!match) {
+        errors.push(`Line ${i + 1}: expected Full Name, Email, Subsystem`);
         return;
       }
 
-      const full_name = parts[0];
-      const email = parts[1];
-      const subsystem_name = parts[2] || "";
+      const full_name = match[1].trim();
+      const email = match[2].trim();
+      const subsystem_name = match[3].trim();
 
       if (!email.includes("@")) {
         errors.push(`Line ${i + 1}: invalid email "${email}"`);
@@ -164,8 +162,13 @@ export function BulkUserImport({ subsystems }: Props) {
           </div>
           <div className="max-h-60 overflow-y-auto">
             {parsed.map((u, i) => {
+              const normalizeSubsystemName = (value: string) =>
+                value.replace(/[\s\u00A0]+/g, " ").trim().toLowerCase();
+
               const subExists = subsystems.some(
-                (s) => s.name.toLowerCase() === u.subsystem_name.toLowerCase().trim()
+                (s) =>
+                  normalizeSubsystemName(s.name) ===
+                  normalizeSubsystemName(u.subsystem_name)
               );
               return (
                 <div key={i} className="flex items-center gap-3 px-3 py-1.5 border-b border-[#1a1a20] last:border-0 text-xs">

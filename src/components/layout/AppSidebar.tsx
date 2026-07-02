@@ -8,18 +8,17 @@ import { navigation } from "@/lib/constants/navigation";
 
 type Props = {
   profile: {
-    role: string;
+    role: "ADMIN" | "BOARD" | "MANAGER" | "MEMBER";
   };
 };
 
 export function AppSidebar({ profile }: Props) {
   const pathname = usePathname();
 
-  const visibleItems = navigation.filter((item) =>
-    item.roles.includes(
-      profile.role as "ADMIN" | "TEAM_MANAGER" | "CAPTAIN" | "SUBSYSTEM_LEAD" | "MEMBER"
-    )
-  );
+  const visibleItems = navigation.filter((item) => {
+    const roleString = profile.role as "ADMIN" | "BOARD" | "MANAGER" | "MEMBER";
+    return item.roles.includes(roleString);
+  });
 
   return (
     <aside className="w-56 flex flex-col border-r border-border/40 bg-sidebar">

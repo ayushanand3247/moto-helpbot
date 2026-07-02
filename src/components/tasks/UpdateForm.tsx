@@ -69,7 +69,7 @@ export function UpdateForm({
   const isPrimaryAssignee = assignedTo === userId;
   const isJunctionAssignee = assigneeIds.includes(userId);
   const isMemberAssignedToTask = (isPrimaryAssignee || isJunctionAssignee) && userRole === "MEMBER";
-  const isBoardOrAdmin = userRole === "ADMIN" || userRole === "TEAM_MANAGER" || userRole === "CAPTAIN" || userRole === "SUBSYSTEM_LEAD";
+  const isBoardOrAdmin = userRole === "ADMIN" || userRole === "BOARD";
 
   if (!isMemberAssignedToTask && !isBoardOrAdmin) {
     return null;
